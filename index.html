@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--black:#0a0906;--deep:#110f0c;--surface:#1a1712;--card:#1f1c17;--border:#2e2920;--gold:#c9a84c;--gold-dim:#7a6530;--gold-bright:#e8c96d;--gold-glow:rgba(201,168,76,0.15);--text:#e8dfc8;--text-dim:#9a8f78;--text-muted:#5a5244;--red:#8b3a3a;--red-bright:#c05050;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--black);color:var(--text);font-family:'Crimson Pro',serif;font-size:17px;line-height:1.7;min-height:100vh;display:flex;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;opacity:0.3;pointer-events:none;z-index:9999;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
+/* SIDEBAR */
+#sidebar{width:272px;min-width:272px;height:100vh;background:var(--deep);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:relative;}
+#sidebar::after{content:'';position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent,var(--gold),var(--gold-dim),transparent);animation:traceDown 4s ease-in-out infinite;}
+@keyframes traceDown{0%,100%{opacity:0.2;transform:scaleY(0.3) translateY(-30%);}50%{opacity:0.8;transform:scaleY(1) translateY(0);}}
+.sidebar-header{padding:28px 22px 20px;border-bottom:1px solid var(--border);}
+.sidebar-title{font-family:'Cinzel Decorative',serif;font-size:12px;color:var(--gold);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:3px;}
+.sidebar-subtitle{font-size:11px;color:var(--text-muted);font-style:italic;}
+#nav{flex:1;overflow-y:auto;padding:10px 0;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+/* ERA GROUP */
+.nav-era{cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:10px 18px 6px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold-dim);user-select:none;transition:color 0.2s;}
+.nav-era:hover{color:var(--gold);}
+.nav-era-arrow{font-size:8px;transition:transform 0.25s;display:inline-block;}
+.nav-era.open .nav-era-arrow{transform:rotate(90deg);}
+.nav-group{overflow:hidden;max-height:0;transition:max-height 0.35s ease;}
+.nav-group.open{max-height:2000px;}
+/* CATEGORY ROW */
+.nav-cat{display:flex;align-items:center;justify-content:space-between;padding:6px 18px 4px 26px;cursor:pointer;font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);user-select:none;transition:color 0.2s;}
+.nav-cat:hover{color:var(--gold-dim);}
+.nav-cat-arrow{font-size:7px;transition:transform 0.25s;}
+.nav-cat.open .nav-cat-arrow{transform:rotate(90deg);}
+.nav-sub{overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
+.nav-sub.open{max-height:1000px;}
+/* NAV ITEMS */
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 18px 7px 34px;cursor:pointer;font-family:'Crimson Pro',serif;font-size:14px;color:var(--text-muted);transition:all 0.15s;border-left:2px solid transparent;}
+.nav-item:hover{color:var(--gold-bright);background:var(--gold-glow);border-left-color:var(--gold-dim);}
+.nav-item.active{color:var(--gold-bright);background:var(--gold-glow);border-left-color:var(--gold);}
+.nav-item-flat{padding-left:26px;}
+.nav-dot{width:3px;height:3px;border-radius:50%;background:var(--gold-dim);flex-shrink:0;}
+.nav-item.active .nav-dot,.nav-item:hover .nav-dot{background:var(--gold);box-shadow:0 0 5px var(--gold);}
+/* SIDEBAR FOOTER */
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
+#auth-btn{background:none;border:1px solid var(--border);color:var(--text-muted);font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;padding:7px 10px;cursor:pointer;transition:all 0.3s;width:100%;}
+#auth-btn:hover{border-color:var(--gold-dim);color:var(--gold);}
+#auth-btn.owner{border-color:var(--gold);color:var(--gold);background:var(--gold-glow);}
+.auth-status{font-size:10px;color:var(--text-muted);font-style:italic;text-align:center;min-height:12px;}
+/* MAIN */
+#main{flex:1;height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+#content-area{max-width:860px;margin:0 auto;padding:48px 60px 100px;}
+.page{display:none;}
+.page.active{display:block;animation:fadeIn 0.25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+/* PAGE HEADER */
+.page-header{margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid var(--border);position:relative;}
+.page-header::after{content:'';position:absolute;bottom:-1px;left:0;width:60px;height:1px;background:var(--gold);}
+.page-category{font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px;}
+.page-title{font-family:'Cinzel Decorative',serif;font-size:32px;color:var(--gold-bright);font-weight:400;line-height:1.1;margin-bottom:10px;}
+.page-desc{color:var(--text-dim);font-style:italic;font-size:16px;line-height:1.6;}
+/* CONTENT */
+.content-h2{font-family:'Cinzel',serif;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin:36px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.content-h3{font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin:20px 0 8px;}
+.prose{color:var(--text-dim);font-size:16px;line-height:1.75;margin-bottom:16px;}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 24px;}
+.tag{font-family:'Cinzel',serif;font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold-dim);border:1px solid var(--border);padding:3px 8px;background:var(--surface);}
+.field-group{margin-bottom:18px;}
+.field-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:4px;display:block;}
+.field-value{font-size:16px;color:var(--text);line-height:1.65;min-height:22px;border-radius:2px;transition:all 0.2s;}
+/* SPOILER */
+.spoiler-block{position:relative;margin:20px 0;padding:20px;background:var(--surface);border:1px solid var(--border);}
+.spoiler-content{filter:blur(5px);user-select:none;pointer-events:none;transition:filter 0.4s ease;}
+.spoiler-lock{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(10,9,6,0.6);transition:opacity 0.4s;}
+.spoiler-lock-icon{font-size:16px;color:var(--gold-dim);}
+.spoiler-lock-text{font-family:'Cinzel',serif;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);}
+body.owner .spoiler-content{filter:none;user-select:auto;pointer-events:auto;}
+body.owner .spoiler-lock{opacity:0;pointer-events:none;}
+/* EDIT MODE */
+body.owner.edit-mode .field-value[contenteditable="true"]{outline:none;border-bottom:1px dashed var(--gold-dim);padding:2px 4px;cursor:text;}
+body.owner.edit-mode .field-value[contenteditable="true"]:focus{border-bottom-color:var(--gold);background:rgba(201,168,76,0.04);}
+.delete-card-btn{display:none;position:absolute;top:10px;right:10px;background:none;border:1px solid var(--red);color:var(--red);font-family:'Cinzel',serif;font-size:8px;padding:3px 7px;cursor:pointer;transition:all 0.2s;}
+.delete-card-btn:hover{background:var(--red);color:var(--text);}
+body.owner.edit-mode .delete-card-btn{display:block;}
+.add-card-btn{display:none;width:100%;margin-top:20px;background:none;border:1px dashed var(--border);color:var(--text-muted);font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:12px;cursor:pointer;transition:all 0.3s;}
+.add-card-btn:hover{border-color:var(--gold-dim);color:var(--gold);background:var(--gold-glow);}
+body.owner.edit-mode .add-card-btn{display:block;}
+/* CARDS GRID */
+.cards-grid{display:flex;flex-direction:column;gap:18px;margin-top:12px;}
+.card{background:var(--card);border:1px solid var(--border);padding:22px 26px;position:relative;transition:border-color 0.3s;}
+.card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--border);transition:background 0.3s;}
+.card:hover::before{background:var(--gold-dim);}
+.card-name{font-family:'Cinzel',serif;font-size:15px;color:var(--gold-bright);font-weight:600;margin-bottom:3px;}
+.card-role{font-size:13px;color:var(--gold-dim);font-style:italic;margin-bottom:14px;}
+/* MODAL */
+#pw-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+#pw-modal.open{display:flex;animation:fadeIn 0.2s ease;}
+.pw-box{background:var(--deep);border:1px solid var(--gold-dim);padding:40px 48px;text-align:center;max-width:340px;width:100%;box-shadow:0 0 40px rgba(201,168,76,0.08);}
+.pw-title{font-family:'Cinzel Decorative',serif;font-size:15px;color:var(--gold);margin-bottom:8px;}
+.pw-sub{font-size:13px;color:var(--text-muted);font-style:italic;margin-bottom:22px;}
+#pw-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Crimson Pro',serif;font-size:18px;padding:10px 14px;text-align:center;letter-spacing:0.2em;margin-bottom:14px;outline:none;transition:border-color 0.2s;}
+#pw-input:focus{border-color:var(--gold-dim);}
+#pw-submit{width:100%;background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;padding:9px;cursor:pointer;transition:all 0.2s;}
+#pw-submit:hover{background:var(--gold-glow);border-color:var(--gold);}
+#pw-error{font-size:12px;color:var(--red-bright);margin-top:8px;font-style:italic;min-height:16px;}
+#pw-cancel{background:none;border:none;color:var(--text-muted);font-family:'Crimson Pro',serif;font-size:12px;cursor:pointer;margin-top:10px;text-decoration:underline;text-underline-offset:3px;}
+</style>
+</head>
+<body>
+
+<div id="pw-modal">
+  <div class="pw-box">
+    <div class="pw-title">Restricted Access</div>
+    <div class="pw-sub">Enter the archive key to unlock all lore and editing</div>
+    <input type="password" id="pw-input" placeholder="&middot; &middot; &middot; &middot; &middot; &middot; &middot;" autocomplete="off">
+    <button id="pw-submit">Enter the Archive</button>
+    <div id="pw-error"></div><br>
+    <button id="pw-cancel">Continue as guest</button>
+  </div>
+</div>
+
+
+<div id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">The Archive</div>
+    <div class="sidebar-subtitle"></div>
+  </div>
+  <nav id="nav">
+
+    <!-- MODERN ERA -->
+    <div class="nav-era open" data-era="modern">Modern Era <span class="nav-era-arrow">&#9658;</span></div>
+    <div class="nav-group open" id="era-modern">
+      <div class="nav-cat open" data-cat="mod-chars">Characters <span class="nav-cat-arrow">&#9658;</span></div>
+      <div class="nav-sub open" id="cat-mod-chars">
+        <div class="nav-item active" data-page="arwin"><span class="nav-dot"></span>Arwin</div>
+        <div class="nav-item" data-page="rhys"><span class="nav-dot"></span>Rhys</div>
+        <div class="nav-item" data-page="lucius"><span class="nav-dot"></span>Lucius</div>
+        <div class="nav-item" data-page="ambrose"><span class="nav-dot"></span>Ambrose</div>
+        <div class="nav-item" data-page="lysander"><span class="nav-dot"></span>Lysander</div>
+        <div class="nav-item" data-page="florence-ghost"><span class="nav-dot"></span>Florence (Ghost)</div>
+        <div class="nav-item" data-page="vesper"><span class="nav-dot"></span>Vesper</div>
+      </div>
+      <div class="nav-cat" data-cat="mod-churches">Churches <span class="nav-cat-arrow">&#9658;</span></div>
+      <div class="nav-sub" id="cat-mod-churches">
+        <div class="nav-item" data-page="abyssal-church"><span class="nav-dot"></span>Abyssal Church</div>
+        <div class="nav-item" data-page="celestial-church"><span class="nav-dot"></span>Celestial Church</div>
+        <div class="nav-item" data-page="lunar-modern"><span class="nav-dot"></span>Lunar Covenant</div>
+      </div>
+      <div class="nav-item nav-item-flat" data-page="relationships-modern"><span class="nav-dot"></span>Relationships</div>
+    </div>
+
+    <!-- FANTASY ERA -->
+    <div class="nav-era" data-era="fantasy">Fantasy Era <span class="nav-era-arrow">&#9658;</span></div>
+    <div class="nav-group" id="era-fantasy">
+      <div class="nav-cat" data-cat="fan-chars">Characters <span class="nav-cat-arrow">&#9658;</span></div>
+      <div class="nav-sub" id="cat-fan-chars">
+        <div class="nav-item" data-page="solstice"><span class="nav-dot"></span>Solstice</div>
+        <div class="nav-item" data-page="florence-living"><span class="nav-dot"></span>Florence</div>
+        <div class="nav-item" data-page="raphael"><span class="nav-dot"></span>Raphael</div>
+        <div class="nav-item" data-page="cecil"><span class="nav-dot"></span>Cecil</div>
+      </div>
+      <div class="nav-cat" data-cat="fan-churches">Churches <span class="nav-cat-arrow">&#9658;</span></div>
+      <div class="nav-sub" id="cat-fan-churches">
+        <div class="nav-item" data-page="solar-covenant"><span class="nav-dot"></span>Solar Covenant</div>
+        <div class="nav-item" data-page="lunar-fantasy"><span class="nav-dot"></span>Lunar Covenant</div>
+        <div class="nav-item" data-page="celestial-church"><span class="nav-dot"></span>Celestial Church</div>
+      </div>
+      <div class="nav-item nav-item-flat" data-page="relationships-fantasy"><span class="nav-dot"></span>Relationships</div>
+    </div>
+
+    <!-- WORLD -->
+    <div class="nav-era" data-era="world">World <span class="nav-era-arrow">&#9658;</span></div>
+    <div class="nav-group" id="era-world">
+      <div class="nav-item nav-item-flat" data-page="world-lore"><span class="nav-dot"></span>Lore &amp; History</div>
+      <div class="nav-item nav-item-flat" data-page="magic"><span class="nav-dot"></span>Magic &amp; Abilities</div>
+      <div class="nav-item nav-item-flat" data-page="timeline"><span class="nav-dot"></span>Timeline</div>
+      <div class="nav-item nav-item-flat" data-page="locations"><span class="nav-dot"></span>Locations</div>
+    </div>
+
+  </nav>
+  <div class="sidebar-footer">
+    <button id="auth-btn">&#9919; Owner Login</button>
+    <div class="auth-status" id="auth-status"></div>
+  </div>
+</div>
+
+
+<div id="main">
+  <div id="content-area">
+<div class="page active" id="page-arwin">
+
+<div class="page-header">
+  <div class="page-category">Modern Era · Character</div>
+  <div class="page-title">Arwin</div>
+  <div class="page-desc">Abyssal Bishop. The most powerful person in the modern world. A teenager who was ritually murdered and kept going anyway.</div>
+</div>
+<div class="tag-row"><span class="tag">Modern Era</span><span class="tag">Abyssal Church</span><span class="tag">Bishop</span><span class="tag">Undead</span><span class="tag">Cecil's Bloodline</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Arwin is the Abyssal Bishop — head of the church that governs everything, which means he is effectively the head of the world. He is young, pretty, sardonic, and deeply private. He did not choose this position so much as have it carved out of him. His predecessor Seval performed a ritual that killed him before his eighteenth birthday and resurrected him as something that is no longer quite alive. He woke up on an altar and has been running the world ever since.</div>
+<div class="prose">He does not believe in Abyssal doctrine. He never did, even as a child being raised inside the church. He liked the structure, the ritual, the community — he just never bought the theology. This has not changed. The most powerful religious leader in the world is running an institution he finds at best irrelevant and at worst actively harmful, and he does it with complete competence and a smile that looks genuine if you do not know where to look.</div>
+
+<div class="content-h2">Appearance</div>
+<div class="field-group">
+  <span class="field-label">Height</span>
+  <div class="field-value" contenteditable="false">Very tall.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Hair</span>
+  <div class="field-value" contenteditable="false">Medium-length, black. Not especially styled but not unkempt — somewhere in between.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Eyes</span>
+  <div class="field-value" contenteditable="false">Green. Sly, foxy. A family trait he does not know the significance of. They are Cecil's eyes.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Face</span>
+  <div class="field-value" contenteditable="false">Pretty nose and lips. Playful expression as a default — always looks like he is in on a joke nobody else has heard yet. His smile can look genuinely kind when he wants it to, which is one of the more unsettling things about him.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Clothing</span>
+  <div class="field-value" contenteditable="false">Black Abyssal robes with gold embroidery. Formal, imposing, and extremely well-made. The Bishop's robes are as much a political statement as a religious one.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">General impression</span>
+  <div class="field-value" contenteditable="false">He looks younger than his position suggests he should. People meeting him for the first time often assume there has been some mistake. There has not been a mistake.</div>
+</div>
+
+<div class="content-h2">Personality</div>
+<div class="field-group">
+  <span class="field-label">Public face</span>
+  <div class="field-value" contenteditable="false">Sardonic, dry, playful. Cutting when he wants to be. The wit is fast and usually lands before anyone has registered he was aiming. He finds most situations at least mildly amusing, or performs that he does, which amounts to the same thing in practice.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Private reality</span>
+  <div class="field-value" contenteditable="false">The hedonism is not enjoyment. It is proof of life. When you have lost the ability to feel shocked or hurt, you chase sensation to prove you can still feel something. The playfulness is armor that calcified over the years since his death into something he wears so naturally he may have forgotten it is armor.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Who he was</span>
+  <div class="field-value" contenteditable="false">A quiet, kind, compliant boy. He genuinely enjoyed church life — not the theology, but the structure, the community, the sense of purpose. He challenged Seval when he needed to and was liked for it. He was not a doormat but he was not a cynic either. That boy is still in there somewhere. He comes out occasionally in small moments. Then the armor goes back up.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Emotional range</span>
+  <div class="field-value" contenteditable="false">Heavily controlled. He sleeps around within his own church in a way that reads as carefree confidence and is actually someone running from stillness. Closeness is dangerous to him in a way he cannot fully articulate — it is what got him killed. Nobody in his immediate circle actually sees him, which suits him fine and costs him everything.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On the church</span>
+  <div class="field-value" contenteditable="false">Does not believe in it. Runs it anyway, competently, because someone has to and because he is aware that him leaving would cause a power vacuum that would be worse. This is the shape his compliance took after his death — not faith, just pragmatism.</div>
+</div>
+
+<div class="content-h2">Abilities & Nature</div>
+<div class="field-group">
+  <span class="field-label">Status</span>
+  <div class="field-value" contenteditable="false">Undead. The specifics of what Seval's ritual created are not widely documented. He is not a ghost, not a vampire in any traditional sense — something adjacent to both and reducible to neither. He functions, he thinks, he feels in the attenuated way that he does. He does not age. He does not heal normally. He has not tested the limits of what can harm him because doing so would require caring whether he could be harmed.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Perception</span>
+  <div class="field-value" contenteditable="false">Has a strong, inexplicable physical reaction to certain presences. He does not know why. He would probably prefer not to find out.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Political power</span>
+  <div class="field-value" contenteditable="false">Absolute, in theory. The Abyssal Church governs everything — spiritual authority, political law, social structure. The Bishop's word is effectively law. In practice Arwin exercises this carefully and rarely overtly, preferring to let the machine run and intervene when necessary.</div>
+</div>
+
+<div class="content-h2">Relationships</div>
+<div class="field-group">
+  <span class="field-label">Rhys</span>
+  <div class="field-value" contenteditable="false">Complicated. Arwin knows about Rhys's abilities and finds him useful. He also finds him compelling in a way he has not fully examined and does not intend to. The banter is genuine. The plausible deniability is very convenient. He does not believe Rhys actually wants him specifically — he has learned to assume people want the Bishop, not the person.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Lucius</span>
+  <div class="field-value" contenteditable="false">Knows Lucius resents him. Finds it more interesting than threatening. Lucius is sharp and competent and furious and has channeled all of it into ambition — Arwin can respect the architecture of that even while finding the direction misguided. He assigned Lucius to Rhys partly because it is useful and partly because Lucius needs to be shaken loose from his certainties.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Ambrose</span>
+  <div class="field-value" contenteditable="false">Finds Ambrose's worship of him mildly exhausting and occasionally touching. Ambrose is seeing a god, not a person, which means he is not actually seeing Arwin at all. This is lonely in a specific way Arwin does not dwell on.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Seval</span>
+  <div class="field-value" contenteditable="false">His predecessor. The person who killed him. He does not talk about this.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Vesper</span>
+  <div class="field-value" contenteditable="false">The Celestial Church's head is an ally, technically. Their interactions are infrequent and strange. Vesper occasionally calls Arwin by the wrong name.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; True nature detail</span>
+  <div class="field-value" contenteditable="false">The ritual Seval performed was necromantic — technically illegal under the church's own public doctrine. The Bishop of the Abyssal Church is an undead created by forbidden death magic, running an institution that bans forbidden death magic. This is not publicly known.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Cecil's bloodline</span>
+  <div class="field-value" contenteditable="false">Arwin is a direct descendant of Cecil — the king who executed Florence 1000 years ago. His green eyes are Cecil's eyes, passed down through Cecil's line. He has no idea. Florence, upon regaining his memory, will recognize those eyes before his conscious mind catches up with what he is recognizing.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The curse</span>
+  <div class="field-value" contenteditable="false">Vesper, at Solstice's request, modified Cecil's string of fate so all his offspring would die before reaching adulthood. The curse lay dormant for 1000 years while Cecil's line navigated it through luck and distance from the church. Arwin did die — Seval's ritual was the mechanism. The curse found its way through. The resurrection is not a loophole. The curse was satisfied.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Physical reaction explained</span>
+  <div class="field-value" contenteditable="false">Arwin has a strong physical reaction to Florence's presence. This is likely connected to his bloodline — Cecil's blood reacting to the ghost of the man Cecil killed. He does not know this. He has not encountered Florence directly yet.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What he doesn't know</span>
+  <div class="field-value" contenteditable="false">His entire existence is entangled with Rhys's ghost and the thousand-year grief of a dead solar priest. The church he runs was built by the man whose grave Rhys accidentally summoned Florence from. The person he has feelings for is hunting his bloodline. None of this is information he has access to.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<div class="content-h2">Arc Notes</div>
+<div class="field-group">
+  <span class="field-label">Current position</span>
+  <div class="field-value" contenteditable="false">Sitting at the top of the world, privately exhausted, maintaining the performance. Managing the church, managing Lucius, managing Vesper's alliance, managing whatever Rhys is to him.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What is coming</span>
+  <div class="field-value" contenteditable="false">Florence. The bloodline reveal. The moment when everything he does not know becomes unavoidable.</div>
+</div>
+<button class="add-card-btn" onclick="addCard('cards-arwin')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-arwin"></div>
+
+</div>
+<div class="page" id="page-rhys">
+
+<div class="page-header">
+  <div class="page-category">Modern Era · Character</div>
+  <div class="page-title">Rhys</div>
+  <div class="page-desc">Lunar seer. Reluctant church asset. Accidentally summoned a thousand-year-old war general while trying to become famous.</div>
+</div>
+<div class="tag-row"><span class="tag">Modern Era</span><span class="tag">Lunar Covenant</span><span class="tag">Seer</span><span class="tag">Nonbinary</span><span class="tag">Escort</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Rhys is a Lunar practitioner who can communicate with the dead, perceive non-corporeal entities, and perform exorcisms. He does not want to do any of these things. He wants to be a popstar, or a celebrity, or at minimum someone people recognise for something other than his ears and his hair and the unsettling way he sometimes goes very still and stares at things that are not there.</div>
+<div class="prose">The Abyssal Church quietly finds him useful. This is not an arrangement he chose so much as fell into — his abilities are real and documented, and the church prefers to have a Lunar seer on an informal leash than to let one operate entirely outside their awareness. He charges accordingly and tries not to think too hard about what it means that he is paid by the institution that persecutes his people.</div>
+<div class="prose">He is performing confidence constantly. The skimpy clothes and the sunglasses and the escort work and the irreverence toward everything the church holds sacred — all of it is a very well-constructed character that he has inhabited for so long he sometimes loses track of the line. He is more perceptive than he lets on. He is lonelier than he performs.</div>
+
+<div class="content-h2">Appearance</div>
+<div class="field-group">
+  <span class="field-label">Hair</span>
+  <div class="field-value" contenteditable="false">Choppy platinum blonde. Cut irregularly, not quite styled, lands somewhere between deliberate and chaotic. Lunar white.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Ears</span>
+  <div class="field-value" contenteditable="false">Elf-like, pointed. A Lunar trait. Visible. There is no hiding what he is.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Clothing</span>
+  <div class="field-value" contenteditable="false">Feminine. Skirts, dresses, skimpy cuts. Round pink sunglasses. Makeup. He leans into the look deliberately — it is armour and performance and genuine preference all at once.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Build</span>
+  <div class="field-value" contenteditable="false">Slim. Narrow waist, long legs.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">General impression</span>
+  <div class="field-value" contenteditable="false">Immediately striking. Immediately identifiable as Lunar. He cannot walk into any space, including Abyssal Church spaces, without everyone knowing exactly what he is. He has made his peace with this by making it part of the performance.</div>
+</div>
+
+<div class="content-h2">Personality</div>
+<div class="field-group">
+  <span class="field-label">Performed self</span>
+  <div class="field-value" contenteditable="false">Chaotic, charming, irreverent. Has a comment for everything. Uses his exoticism as currency — leans into being the strange Lunar with the uncanny abilities because it gets him further than trying to pretend he is something he is not. Dry humor, fast. He makes Lucius's temple tick.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Actual self</span>
+  <div class="field-value" contenteditable="false">More perceptive than he acts. Not as confident as he presents. The performance of desirability is a career strategy and a shield — if he is the one making himself an object of interest, nobody else gets to define that for him. The toll his abilities take is something he manages mostly alone and mostly in silence.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On his abilities</span>
+  <div class="field-value" contenteditable="false">Does not want them. They are useful and they cost him and he did not choose them. He would trade the whole package for a record deal. He uses them for money and survival and tries to avoid using them for anything that matters because anything that matters leaves a mark.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On the church</span>
+  <div class="field-value" contenteditable="false">Complicated. He works for them informally. They persecute his community. He is aware of this contradiction and handles it with aggressive pragmatism and occasional private guilt.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On Arwin</span>
+  <div class="field-value" contenteditable="false">Finds him suspicious and compelling in approximately equal measure. The banter is genuine. The feelings he is not examining are also genuine. He does not believe Arwin sees him as a person rather than an asset, which is incorrect, and he is not going to find out he is wrong in any comfortable way.</div>
+</div>
+
+<div class="content-h2">Abilities</div>
+<div class="field-group">
+  <span class="field-label">Communication with the dead</span>
+  <div class="field-value" contenteditable="false">Can hear, perceive, and interact with ghosts and other non-corporeal entities. Most people cannot. This makes him uniquely useful for certain church tasks they prefer not to make official.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Seership</span>
+  <div class="field-value" contenteditable="false">Perceives things others cannot, in ways that are difficult to categorise. Sometimes prophetic, sometimes just sensitive. Not a clean or controllable gift.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Exorcism</span>
+  <div class="field-value" contenteditable="false">Can remove or contain hostile entities. This is the service the church actually pays him for, though they frame it as 'consulting'.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The cost</span>
+  <div class="field-value" contenteditable="false">Using his abilities — especially extended contact with the dead or with hostile entities — degrades his psychological state. There is a ceiling to how much he can do before it starts leaving marks he cannot immediately recover from. He manages this by limiting how much he uses them and not telling anyone how limiting that actually is.</div>
+</div>
+
+<div class="content-h2">Relationships</div>
+<div class="field-group">
+  <span class="field-label">Florence</span>
+  <div class="field-value" contenteditable="false">Summoned him accidentally while trying to do a ritual for career gain near a healing creek. Florence showed up amnesiac, furious, and enormous as a presence. They have developed something resembling friendship by way of bickering constantly. Rhys is the only person who can consistently perceive Florence. He finds this both useful and occasionally exhausting.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Arwin</span>
+  <div class="field-value" contenteditable="false">The arrangement neither of them has named. Useful to each other professionally. Genuinely funny to each other personally. Both convinced the other is not actually invested. Both wrong.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Lucius</span>
+  <div class="field-value" contenteditable="false">The church assigned Lucius to babysit him on an investigation. Lucius hates Lunars. Rhys is Lunar in the most visible possible way. They are stuck together and it is changing both of them in ways neither would admit.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">His community</span>
+  <div class="field-value" contenteditable="false">Has a complicated relationship with the Lunar community he is supposed to represent. He uses his exoticism for personal gain instead of community advocacy. This is a genuine tension he mostly does not look at directly.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; What he summoned</span>
+  <div class="field-value" contenteditable="false">The healing creek where Rhys performed his ritual is Florence's grave. The site has healing properties because Solstice spent his remaining life imbuing it with solar magic hoping to resurrect Florence. When Rhys performed his ritual there he accidentally completed something Sol never could. He has no idea about any of this.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What he is walking toward</span>
+  <div class="field-value" contenteditable="false">Florence's revenge target is Cecil's bloodline. Arwin IS Cecil's bloodline. Rhys is going to be standing between them when this comes out. He is the thread connecting every major plot in this story and he has absolutely no idea.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The deeper toll</span>
+  <div class="field-value" contenteditable="false">The mental cost of his abilities is higher than he lets on to anyone. Extended contact with Florence — who is a very powerful ghost — is not neutral for him. He is slowly taking on more than he acknowledges.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<div class="content-h2">Arc Notes</div>
+<div class="field-group">
+  <span class="field-label">Current position</span>
+  <div class="field-value" contenteditable="false">Managing Florence's increasing coherence and power while maintaining the fiction that this is fine and under control. Navigating whatever Arwin is to him. Trying to become famous on the side.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What is coming</span>
+  <div class="field-value" contenteditable="false">The bloodline reveal. Being the person who has to stand in the middle of something enormous with no preparation and no context.</div>
+</div>
+<button class="add-card-btn" onclick="addCard('cards-rhys')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-rhys"></div>
+
+</div>
+<div class="page" id="page-lucius">
+
+<div class="page-header">
+  <div class="page-category">Modern Era · Character</div>
+  <div class="page-title">Lucius</div>
+  <div class="page-desc">High-ranking Abyssal churchman. Wanted to be Bishop. Did not become Bishop. Has feelings about this.</div>
+</div>
+<div class="tag-row"><span class="tag">Modern Era</span><span class="tag">Abyssal Church</span><span class="tag">Cecil's Bloodline</span><span class="tag">Lunar Racist</span><span class="tag">Protective Brother</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Lucius is one of the most capable people in the Abyssal Church and he knows it, which makes the fact that Arwin is Bishop and he is not a wound that has never fully closed. He is cold, precise, deeply ambitious, and ferociously protective of his younger brother Ambrose in a way that is the only place his genuine warmth is visible.</div>
+<div class="prose">He hates Lunars with an intensity that is not purely doctrinal. It is personal. His father was cursed by Lunar practitioners and Ambrose has been sick his entire life as a result. Lucius has channeled his helplessness about this into hatred because hatred is something he can do something with. He cannot fix the curse. He cannot make his father love him. He cannot become Bishop. But he can be the most relentless anti-Lunar voice in the church. That is a form of power.</div>
+<div class="prose">He does not know that he is Cecil's descendant. He does not know that Arwin is also Cecil's descendant. He does not know that the Lunar curse on his family is itself the consequence of something Cecil did. He has a very coherent worldview built on incomplete information and it is going to be a problem.</div>
+
+<div class="content-h2">Appearance</div>
+<div class="field-group">
+  <span class="field-label">Height</span>
+  <div class="field-value" contenteditable="false">Tall.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Hair</span>
+  <div class="field-value" contenteditable="false">Long, pin-straight, chestnut brown. Immaculately kept. The kind of hair that communicates control.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Eyes</span>
+  <div class="field-value" contenteditable="false">Almost reddish-brown. Warm in colour, cold in expression.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Clothing</span>
+  <div class="field-value" contenteditable="false">Rich red-toned clothes in his family colours. Formal, expensive, precise. Every choice communicates status and seriousness.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Expression</span>
+  <div class="field-value" contenteditable="false">Perpetual frown, or close to it. He is not always displeased — this is simply his face in neutral. People who do not know him assume he is angry. People who do know him know that his actually angry face is significantly worse.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">General impression</span>
+  <div class="field-value" contenteditable="false">Severe, composed, aristocratic. Someone who has spent their whole life performing adequacy for a father who measured everything.</div>
+</div>
+
+<div class="content-h2">Personality</div>
+<div class="field-group">
+  <span class="field-label">Ambition</span>
+  <div class="field-value" contenteditable="false">Genuine and deep. He wanted the bishopric and believes he would have been better at it than Arwin. He is not entirely wrong — he is more systematically competent in many ways. But he does not understand what the bishopric actually entails, because he does not know what Arwin is, and his assessment of Arwin's performance is based on incomplete information.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Resentment of Arwin</span>
+  <div class="field-value" contenteditable="false">Consistent and specific. He sees someone young and pretty who coasts, who sleeps around, who is playful when he should be grave, who does not seem to take the weight of his position seriously. This reading of Arwin is wrong in almost every particular, but Lucius has no way to know that.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Protectiveness</span>
+  <div class="field-value" contenteditable="false">The one place he is not calculating. With Ambrose he is just a person who loves someone and is terrified of losing him. This is the most honest he gets.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Lunar hatred</span>
+  <div class="field-value" contenteditable="false">Not abstract. Specific, personal, consuming. The Lunar curse on Ambrose is the organising principle of his grievances. He is the church's most prominent anti-Lunar voice and he has made it a point of pride.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">With Rhys</span>
+  <div class="field-value" contenteditable="false">Being forced into extended proximity with a visibly Lunar person who refuses to take him seriously is one of the more destabilising things that has happened to Lucius. Rhys does not want anything from him. This is unusual and Lucius does not know what to do with it.</div>
+</div>
+
+<div class="content-h2">Relationships</div>
+<div class="field-group">
+  <span class="field-label">Ambrose</span>
+  <div class="field-value" contenteditable="false">Everything. The centre of what makes Lucius human. He would do anything for him and has structured his entire life around protecting him from a curse he cannot actually fix.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">His father</span>
+  <div class="field-value" contenteditable="false">Cold and demanding. Sees Ambrose as a disappointment and Lucius as the son who cannot afford to also be a disappointment. Has made Lucius's entire childhood into a performance of adequacy. Lucius has internalised this completely.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Arwin</span>
+  <div class="field-value" contenteditable="false">Resentment, professional competence, and a complete misreading of the person in front of him. He works under Arwin effectively because he is good at his job. He does not see Arwin at all.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Rhys</span>
+  <div class="field-value" contenteditable="false">Forced proximity. Genuine antagonism. Something shifting that Lucius is not examining.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; Cecil's bloodline</span>
+  <div class="field-value" contenteditable="false">Lucius is descended from Cecil — the king who executed Florence 1000 years ago. He does not know this. His family's position, their colours, their history — all of it traces back to Cecil's line.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The curse's true source</span>
+  <div class="field-value" contenteditable="false">The Lunar curse on his father — the source of Ambrose's illness — is itself a consequence of Cecil's actions. Vesper modified Cecil's bloodline at Sol's request. Lucius has spent his life hating Lunars for a curse that exists because of what his own ancestor did. The irony is total and he has no access to it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What he doesn't know about Arwin</span>
+  <div class="field-value" contenteditable="false">Arwin is also Cecil's descendant. Arwin is undead. The bishopric that Lucius resents Arwin for holding is something Arwin was murdered into. Lucius's entire grievance is constructed on not knowing any of these things.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What is coming</span>
+  <div class="field-value" contenteditable="false">At some point the truth about the bloodline, the curse, and Arwin's nature will surface. Lucius's worldview will not survive contact with this information intact.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-lucius')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-lucius"></div>
+
+</div>
+<div class="page" id="page-ambrose">
+
+<div class="page-header">
+  <div class="page-category">Modern Era · Character</div>
+  <div class="page-title">Ambrose</div>
+  <div class="page-desc">Lucius's younger brother. Chronically ill. Worships Arwin as a god rather than a person.</div>
+</div>
+<div class="tag-row"><span class="tag">Modern Era</span><span class="tag">Abyssal Church (peripherally)</span><span class="tag">Cecil's Bloodline</span><span class="tag">Lunar Cursed</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Ambrose is younger than Lucius, albino, and has been sick for as long as either of them can remember. His illness is supernatural in origin — a lunar curse that Lucius knows about and cannot fix. Their father sees Ambrose as a disappointment and a liability, which has made Lucius's protectiveness all the more fierce and all the more painful.</div>
+<div class="prose">Ambrose himself is earnest and silly in a way that is somewhat at odds with the weight of everything around him. He is not ambitious in Lucius's mode. He is not calculating. He is genuinely fond of people and genuinely devoted to Arwin in a way that is less about Arwin specifically and more about needing something to believe in when your body has been failing you your entire life.</div>
+
+<div class="content-h2">Appearance</div>
+<div class="field-group">
+  <span class="field-label">Complexion</span>
+  <div class="field-value" contenteditable="false">Albino. White hair, pale skin, light-sensitive eyes. Visually striking.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">General impression</span>
+  <div class="field-value" contenteditable="false">Fragile-looking. The illness reads in the body — he looks like someone who has been unwell for a long time, because he has been.</div>
+</div>
+
+<div class="content-h2">Personality</div>
+<div class="field-group">
+  <span class="field-label">Temperament</span>
+  <div class="field-value" contenteditable="false">Warm, earnest, easily delighted. Not particularly serious. Finds Lucius's severity funny in a fond way.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On Arwin</span>
+  <div class="field-value" contenteditable="false">Worships him. Sees him as a godlike figure — everything a Bishop should be, elevated, extraordinary, beyond ordinary human concerns. This is not Arwin. Ambrose is not seeing Arwin at all. He is seeing the image he has constructed, which Arwin's performance of distance accidentally reinforces.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Self-awareness</span>
+  <div class="field-value" contenteditable="false">Somewhat. He knows Lucius worries about him more than is healthy. He does not fully understand the cost of that worry, or what it has made Lucius into.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; The curse</span>
+  <div class="field-value" contenteditable="false">Ambrose's illness is a lunar curse. Specifically it was applied to his father — a descendant of Cecil — as an enforcement of the fate-modification Vesper made at Sol's request. Lucius knows it is supernatural. He does not know the full history of why it exists. He just knows Lunars did it and Ambrose is paying for it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Cecil's bloodline</span>
+  <div class="field-value" contenteditable="false">Ambrose is Cecil's descendant. The curse on him is, in a horrifying way, the consequence of his own ancestor's actions reaching forward through time. He has no idea.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-ambrose')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-ambrose"></div>
+
+</div>
+<div class="page" id="page-lysander">
+
+<div class="page-header">
+  <div class="page-category">Modern Era · Character</div>
+  <div class="page-title">Lysander</div>
+  <div class="page-desc">Celestial Church acolyte. Complicated devotion to Vesper. Wishes he had ended up somewhere else.</div>
+</div>
+<div class="tag-row"><span class="tag">Modern Era</span><span class="tag">Celestial Church</span><span class="tag">Acolyte</span><span class="tag">Marked</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Lysander is Vesper's acolyte, which means he is marked — literally, by the Celestial Church's process — and monitored, and bound to something he did not fully understand when he agreed to it. He resents the situation more than he resents Vesper, which is a distinction that matters to him even if it is not obvious from the outside.</div>
+<div class="prose">His feelings toward Vesper resist simple categorisation. It is not admiration exactly, because admiration implies understanding what you are admiring and Vesper is not understandable in any conventional sense. It is not fear exactly, though fear is part of it. It is not love in any human sense. Something that operates in the spaces between those things, specific to what Vesper is and what Lysander's proximity to him has made of him.</div>
+
+<div class="content-h2">Personality</div>
+<div class="field-group">
+  <span class="field-label">Baseline</span>
+  <div class="field-value" contenteditable="false">Would have preferred different tutelage. He has a genuine interest in what he studies but not in who he is studying under or the institution surrounding it. He stays because leaving is complicated and because the devotion — whatever it is — is real.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On Vesper</span>
+  <div class="field-value" contenteditable="false">Cannot see him as simply good or bad. Vesper is too far outside human categories for those to stick. What Lysander has is something more like orientation — he is oriented toward Vesper the way a compass is oriented toward north. It is not entirely comfortable.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What he wanted</span>
+  <div class="field-value" contenteditable="false">To study under someone like Solstice — the Solar Covenant's lost leader — whose approach and values are more legible, more human. He knows enough history to know what Sol was. The Abyssal Church's sanitised version of the Reclaimer mythology reads differently to someone inside the Celestial Church who has access to older records.</div>
+</div>
+
+<div class="content-h2">Relationships</div>
+<div class="field-group">
+  <span class="field-label">Vesper</span>
+  <div class="field-value" contenteditable="false">The central relationship of his current life and the one he understands least. Complicated devotion. Power imbalance. Vesper is not capable of reciprocating in any conventional sense and Lysander knows this.</div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-lysander')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-lysander"></div>
+
+</div>
+<div class="page" id="page-florence-ghost">
+
+<div class="page-header">
+  <div class="page-category">Modern Era · Character</div>
+  <div class="page-title">Florence (Ghost)</div>
+  <div class="page-desc">A thousand-year-old war general, amnesiac, growing more powerful and more coherent by the day. Summoned accidentally. Furious about it.</div>
+</div>
+<div class="tag-row"><span class="tag">Modern Era</span><span class="tag">Ghost</span><span class="tag">Amnesiac</span><span class="tag">Gaining Power</span><span class="tag">Cecil's Victim</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Florence does not know who he is. He knows he is dead. He knows he was summoned by someone who thought ghosts were like genies, which he finds insulting in a way he cannot fully articulate given that he cannot remember what he was. He is slowly piecing himself together from instinct and moral conviction and the increasingly loud sense that something was done to him that requires a response.</div>
+<div class="prose">He materialised from almost nothing — a confused, furious force of nature with no context and enormous power. He is more powerful than a ghost his age should be by any normal measure, and for reasons he cannot access. He is gaining coherence. He is gaining memory. He is going to be a problem for someone, and that someone does not yet know who they are dealing with.</div>
+
+<div class="content-h2">Appearance (Ghost Form)</div>
+<div class="field-group">
+  <span class="field-label">Hair</span>
+  <div class="field-value" contenteditable="false">Choppy jet black bob. Not a style he chose — a wound his soul carries without remembering the wounding. In life his hair was very long. It was cut before his execution as a public humiliation.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Height & Build</span>
+  <div class="field-value" contenteditable="false">Short, around 165cm. Slender, very agile. The build of someone who moved like a weapon even when they were not trying to.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Clothes</span>
+  <div class="field-value" contenteditable="false">Heels. Old-fashioned fancy medieval clothes — not quite the military regalia of his life, but something adjacent. Formal without being armoured.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Legs</span>
+  <div class="field-value" contenteditable="false">Materialises with both legs. In life he had a metal prosthetic — he lost his leg to a poisoned trap and a betrayal. As a ghost he is whole in the ways that felt like loss. His soul remembers what he was before the amputation, not after.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">General impression</span>
+  <div class="field-value" contenteditable="false">Small but not soft. The kind of presence that makes a room recalibrate without doing anything overt. His ghost form carries his military history in the posture even when everything else is stripped away.</div>
+</div>
+
+<div class="content-h2">Personality</div>
+<div class="field-group">
+  <span class="field-label">Intact through death</span>
+  <div class="field-value" contenteditable="false">His moral character survived death and amnesia completely. He does not know who he was but he knows what he will and will not accept. His standards are extremely high and entirely instinctive. He cannot justify them with history he does not have access to. He just has them.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Current mode</span>
+  <div class="field-value" contenteditable="false">Sharp, snarky, quiet until he has something worth saying. He and Rhys bicker like siblings — he is the older sibling who finds Rhys's chaos offensive on a structural level and grudgingly endearing in practice.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On being dead</span>
+  <div class="field-value" contenteditable="false">Has processed this to the extent that a person with no memory of being alive can process it. He is not in denial. He is annoyed.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Goal</span>
+  <div class="field-value" contenteditable="false">Once he understood he was murdered, the goal became clear without him having to find it. He wants the person responsible — or more specifically, what remains of them — to face a consequence. He and Rhys are looking for Cecil's modern lineage.</div>
+</div>
+
+<div class="content-h2">Relationships</div>
+<div class="field-group">
+  <span class="field-label">Rhys</span>
+  <div class="field-value" contenteditable="false">The only person who can consistently perceive him. Started as resentful captivity on both sides. Has become something resembling a genuine dynamic — they bicker and neither admits to caring and both clearly do. Rhys is accidentally helping Florence remember how to be a person.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Everyone else</span>
+  <div class="field-value" contenteditable="false">Cannot currently interact with most people. Is gaining power. This will change.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; Who he was</span>
+  <div class="field-value" contenteditable="false">Florence was a war general and the son of a king. He served under his own country's military and was one of the most effective field commanders of his era. He had a metal prosthetic leg, a lieutenant named Raphael who he had once sentenced to death and then adopted into his life, and a healer named Solstice who he fell in love with.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; How he died</span>
+  <div class="field-value" contenteditable="false">Cecil — his childhood friend turned king — had him publicly accused of treason, humiliated, and executed. His long jet black hair was cut off before the execution as a ritual degradation. Cecil's reasons involved Sol and the Solar Covenant.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Why his hair is that length</span>
+  <div class="field-value" contenteditable="false">Cecil grabbed him by the hair and cut it before the execution. Florence does not remember Cecil or his death. His soul maintained the wound anyway. He materialises as Cecil left him.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Why he is so powerful</span>
+  <div class="field-value" contenteditable="false">Solstice spent his remaining life imbuing Florence's grave with solar healing magic, hoping for a miracle that never came. A thousand years of accumulated grief-love is part of what makes Florence as powerful as he is. He has been marinating in Sol's love for ten centuries. Sol did bring him back. He just did not live to know it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The recognition moment</span>
+  <div class="field-value" contenteditable="false">Florence will eventually regain enough memory to recognise Cecil. His eyes were green. When he looks at Arwin — who has Cecil's green eyes, a family trait — something in him will recognise it before his conscious memory catches up. This is the moment everything converges.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What he does not know about Rhys</span>
+  <div class="field-value" contenteditable="false">Rhys has feelings for Arwin. Arwin is Cecil's descendant. Florence is hunting Cecil's lineage. These three facts have not yet occupied the same space in his awareness simultaneously.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-florence-ghost')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-florence-ghost"></div>
+
+</div>
+<div class="page" id="page-vesper">
+
+<div class="page-header">
+  <div class="page-category">Both Eras · Character</div>
+  <div class="page-title">Vesper</div>
+  <div class="page-desc">Head of the Celestial Church. Over a thousand years old. The only being in this world who knows the full history. He is not human and should not be evaluated as one.</div>
+</div>
+<div class="tag-row"><span class="tag">Both Eras</span><span class="tag">Celestial Church</span><span class="tag">Ancient</span><span class="tag">Non-Human</span><span class="tag">Sealed for 1000 Years</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Vesper predates most of what currently exists. He has been the head of the Celestial Church for longer than reliable records account for. He communes with stars. He reads and sometimes modifies the strings of fate. He has watched civilisations construct themselves and fail. He is the only living being who knows the true history of the world — what Sol was, what the Reclaimer mythology actually means, what the Lunars actually did, why the Solar Covenant really collapsed.</div>
+<div class="prose">He does not volunteer this information.</div>
+<div class="prose">He is not evil. He is not good. He is not benevolent or malevolent or kind or cruel. He is a being so far outside human moral categories that applying them is a category error — the way applying human morality to weather is a category error. Something happened to him across his thousand years of existence and the subsequent thousand years of sealed immobility that has made his grip on time and reality fractured. He sometimes confuses the present with the past. He sometimes mistakes people for other people. He carries what remains of the one person he has ever gotten along with.</div>
+
+<div class="content-h2">Appearance</div>
+<div class="field-group">
+  <span class="field-label">Height</span>
+  <div class="field-value" contenteditable="false">Approximately 2.5 metres.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Quality</span>
+  <div class="field-value" contenteditable="false">Uncanny valley. Smooth, offputting, mannequin-like. The face is too even, the skin too unmarked, the proportions subtly wrong in ways that register before the conscious mind can identify what is wrong.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Eyes</span>
+  <div class="field-value" contenteditable="false">Two main eyes: huge, with slit pupils like a cat or snake. White scleras. A third eye on his forehead — this one moves independently of the other two. Its iris is near-colourless, almost entirely pupil.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Build</span>
+  <div class="field-value" contenteditable="false">Grotesquely slender. Bends where he should not. Three joints instead of two in his limbs. Long bony fingers with long black nails.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Clothing</span>
+  <div class="field-value" contenteditable="false">Endless layered purple robes. They have twinkling points of light in the fabric — actual stars, or something that behaves like them. Silver embroidery. The layers shift when he moves.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Hair</span>
+  <div class="field-value" contenteditable="false">Long, dark, ashy-purple. Very long.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">General impression</span>
+  <div class="field-value" contenteditable="false">Wrong, in a way that is difficult to look at directly for long. Not frightening exactly, but deeply uncomfortable. The kind of presence that makes your hindbrain suggest you should be somewhere else.</div>
+</div>
+
+<div class="content-h2">Nature & Abilities</div>
+<div class="field-group">
+  <span class="field-label">Category</span>
+  <div class="field-value" contenteditable="false">Not human. Not a ghost, not a god in any traditional sense, not a demon. Something that exists in a category that human language does not have good words for. He communes with stars as entities — they communicate with him in ways that have given him information and capabilities that operate outside normal physical or magical frameworks.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Fate manipulation</span>
+  <div class="field-value" contenteditable="false">Can interact with the strings of fate as written in the stars. Read them. In certain cases, modify them. This is not unlimited — it cost him significantly when he modified Cecil's bloodline at Sol's request, and he was at his most powerful then. In his current diminished state his capabilities are reduced.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Memory and time</span>
+  <div class="field-value" contenteditable="false">Fractured. He occasionally confuses the present with the past. He sometimes calls people by the wrong name — specifically the name of someone he knew a thousand years ago. He keeps objects that belonged to people who are gone. His relationship to linear time is not the same as a human's.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Power level</span>
+  <div class="field-value" contenteditable="false">Significantly diminished compared to the Fantasy Era. A thousand years of sealed immobility has taken something from him that has not fully returned. He may never be what he was.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The third eye</span>
+  <div class="field-value" contenteditable="false">Moves independently. Sometimes seems to perceive things the other two eyes do not. Has a history that explains its near-colourless appearance.</div>
+</div>
+
+<div class="content-h2">Relationships</div>
+<div class="field-group">
+  <span class="field-label">Sol (Solstice)</span>
+  <div class="field-value" contenteditable="false">The one. The only person Vesper has ever genuinely gotten along with, across however many centuries he has existed. He developed something that functions like longing — not in a human sense, but in whatever sense is possible for what he is. He carries Sol's skull. He replaced his own third eye with Sol's damaged eye. He spent a thousand years of paralysis with Sol's eye in his skull looking at darkness.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Lysander</span>
+  <div class="field-value" contenteditable="false">His current acolyte. Vesper's relationship to Lysander is not simple to characterise because Vesper's relationships to people are not simple to characterise. He does not see Lysander the way Lysander sees him.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Arwin</span>
+  <div class="field-value" contenteditable="false">Allied with Arwin's church in the modern era. Their interactions are infrequent and strange. He sometimes calls Arwin by the wrong name.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The Lunars</span>
+  <div class="field-value" contenteditable="false">Previously allied with them. Abandoned that alliance when Arwin came to power. This was not malice — it was a calculation, or something like one. He does not carry grudges in a human way.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; The third eye explained</span>
+  <div class="field-value" contenteditable="false">Vesper's third eye is Solstice's eye. Sol's own eye was damaged — blind or near-blind. Vesper replaced his third eye with it. This means Sol's eye has been in Vesper's skull for over a thousand years. When Florence appeared in the modern world, Sol's eye recognised him before Vesper's conscious mind processed the information. He gets severe reactions — headaches, disorientation — from Florence's presence.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The skull</span>
+  <div class="field-value" contenteditable="false">Vesper keeps Solstice's skull. This is how he maintains physical proximity to the one person he developed something resembling attachment to. Across a thousand years of isolation, he kept it. He kept it during the sealing. It is unclear if it goes everywhere with him or if it stays somewhere specific.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The sealing</span>
+  <div class="field-value" contenteditable="false">Vesper was sealed in the basement of a church by a star shard through his throat and hands. He was pinned to a stone slab. Conscious. Completely immobile. For approximately 1000 years. He could not twitch a finger. He could not speak. He existed in total sensory deprivation for a millennium with Sol's eye and Sol's skull for company. He was found by children exploring ruins and freed. He is not fully recovered. He may never fully recover. What this did to his grip on time and self is not something that gets healed quickly.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Who sealed him</span>
+  <div class="field-value" contenteditable="false">Cecil, with help from Lunars. This is the act that the modern Lunar persecution is partially built on — distorted, exaggerated, weaponised. The Lunars helped seal something dangerous and the institution built in Sol's grief turned that into heresy. Sol tried to free Vesper. He failed. His last act toward Vesper was an attempt at rescue, not revenge.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What Vesper knows</span>
+  <div class="field-value" contenteditable="false">Everything. The true founding of the Abyssal Church. Who Sol was. What the Reclaimer actually means. Why the Solar Covenant collapsed. What the Lunars actually did and why. The full history of Cecil's bloodline and the curse. He is the only living being who holds all of this. He does not volunteer it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Florence</span>
+  <div class="field-value" contenteditable="false">When Florence was alive, Vesper did not know him directly — he knew him through Sol, who loved him. The knowledge that Sol wanted Florence resurrected and that Vesper gave Sol the knowledge to try (too late, it came too late) means Vesper carries some relationship to Florence's existence. When Florence appeared in the modern world, the reaction was immediate and severe.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-vesper')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-vesper"></div>
+
+</div>
+<div class="page" id="page-solstice">
+
+<div class="page-header">
+  <div class="page-category">Fantasy Era · Character</div>
+  <div class="page-title">Solstice (Sol)</div>
+  <div class="page-desc">Future leader of the Solar Covenant. Healer. The person whose grief built the modern world.</div>
+</div>
+<div class="tag-row"><span class="tag">Fantasy Era</span><span class="tag">Solar Covenant</span><span class="tag">Healer</span><span class="tag">Grief Arc</span><span class="tag">Founded Abyssal Church</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Sol is eighteen when we meet him and already carrying significant weight — he is the heir apparent to the Solar Covenant, trained as a healer, assigned his first real post under Florence. He is serious, principled, professional. He is good at what he does. He believes in what he does. This is important to understand about him: he is not naive, he is not blindly idealistic, he is genuinely good and genuinely committed, and this makes what happens to him more devastating, not less.</div>
+<div class="prose">Florence's execution breaks him in a way that nothing in him was built to survive. He pursues every avenue available. He makes deals he should not make. He does things he cannot take back. The Solar Covenant collapses because of him. And then he builds something new, in grief, because he has to put the pieces of himself somewhere.</div>
+<div class="prose">The thing he builds becomes the Abyssal Church. The figure the modern church venerates as the Reclaimer is Sol. He worshipped himself by accident, through a mythology that calcified around his grief into something unrecognisable. He died before he could see what it became. He never stopped putting magic into Florence's grave.</div>
+
+<div class="content-h2">Appearance</div>
+<div class="field-group">
+  <span class="field-label">Hair</span>
+  <div class="field-value" contenteditable="false">Golden blonde. This is a Solar Covenant trait — practitioners are typically blonde.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Age</span>
+  <div class="field-value" contenteditable="false">Eighteen at the start of his arc. Young, visibly. First assignment young.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">General</span>
+  <div class="field-value" contenteditable="false">Not yet described in physical detail beyond hair and age. Build and features to be developed.</div>
+</div>
+
+<div class="content-h2">Personality</div>
+<div class="field-group">
+  <span class="field-label">Baseline</span>
+  <div class="field-value" contenteditable="false">Principled. Professional. Quietly devoted to his work and his faith. The kind of person who takes their first assignment seriously, who prepares, who does not cut corners. His grandmother is the current head of the Covenant — there is family legacy weight here that he carries.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Under pressure</span>
+  <div class="field-value" contenteditable="false">He is not a pushover — he has genuine conviction — but he is not prepared for the specific kind of pressure that comes when the thing you love most is destroyed publicly and deliberately and there is nothing you could have done.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">After</span>
+  <div class="field-value" contenteditable="false">The grief does not make him cruel. It makes him desperate, and desperation makes him capable of things that conviction alone would not. He does not become a villain. He becomes someone who has broken and is trying to build something liveable out of the pieces, and the thing he builds is imperfect in ways he cannot see because he is too deep inside it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Relationship to the church he builds</span>
+  <div class="field-value" contenteditable="false">He does not name himself the Reclaimer. He does not intend to be worshipped. What happens to his legacy over a thousand years is not something he designed. He was trying to survive.</div>
+</div>
+
+<div class="content-h2">Relationships</div>
+<div class="field-group">
+  <span class="field-label">Florence</span>
+  <div class="field-value" contenteditable="false">The love of his life. Difficult, then transformative, then everything. Florence's death is the event his entire arc orbits. He never fully leaves it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Raphael</span>
+  <div class="field-value" contenteditable="false">Florence's lieutenant. They hit it off immediately. Raphael is the one who bridges the gap between Sol and Florence in the first months of the assignment. Sol is genuinely fond of him.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">His grandmother</span>
+  <div class="field-value" contenteditable="false">The current head of the Solar Covenant. She represents everything Sol was trained to be. What happens to the Covenant is partly her story too.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Vesper</span>
+  <div class="field-value" contenteditable="false">He approached Vesper in desperation and desperation made him trust something he perhaps should not have trusted fully. Vesper gave him what he asked for. It came too late. Sol tried to save Vesper when Cecil sealed him and failed. He carried that failure until he died.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Cecil</span>
+  <div class="field-value" contenteditable="false">The person who killed Florence. Sol asked Vesper to curse Cecil's bloodline. This was the one act of revenge he allowed himself. It reached across a thousand years.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; The Reclaimer</span>
+  <div class="field-value" contenteditable="false">The Abyssal Church venerates the Reclaimer, a figure associated with dominion over death and the reclaiming of souls. The Reclaimer is Sol. He did not intend this. The mythology built up around his actions and his grief over centuries into something he would not recognise.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What he did with the knowledge Vesper gave him</span>
+  <div class="field-value" contenteditable="false">Vesper gave him the knowledge to attempt Florence's resurrection. It came too late — Florence was already gone beyond reach. Sol could not use it. He carried that knowledge and that failure for the rest of his life.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Florence's grave</span>
+  <div class="field-value" contenteditable="false">Sol spent whatever remained of his life after Florence's death imbuing Florence's burial site with solar healing magic. He could not bring Florence back but he kept trying in the only way still available to him. The magic accumulated over centuries. It is why the healing creek has its properties. It is why Florence is as powerful as he is as a ghost. Sol did bring him back. He just did not live to know it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What he built</span>
+  <div class="field-value" contenteditable="false">The Abyssal Church did not start as the institution it became. Sol was building something to survive in, not an empire. What it became over a thousand years is the result of other people's hands shaping his grief into power.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The seal attempt</span>
+  <div class="field-value" contenteditable="false">When Cecil had Vesper sealed, Sol tried to free him. He failed. The star shard held. This was one of his last acts — an attempt at rescue for the being he had made his deal with, who he had come to have something complicated with. He failed. He died. He never freed Vesper.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-solstice')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-solstice"></div>
+
+</div>
+<div class="page" id="page-florence-living">
+
+<div class="page-header">
+  <div class="page-category">Fantasy Era · Character</div>
+  <div class="page-title">Florence (Living)</div>
+  <div class="page-desc">War general. Son of a king. The wound at the centre of everything.</div>
+</div>
+<div class="tag-row"><span class="tag">Fantasy Era</span><span class="tag">Military</span><span class="tag">War General</span><span class="tag">Sol's Love</span><span class="tag">Cecil's Victim</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Florence is, when we meet him, a mess. He has recently lost his leg to a poisoned trap set by one of his own men — a betrayal that meant he was captured before he could receive treatment, which meant amputation. He is proud, private, and has no idea how to be looked after. He expresses this by being horrible to the healer assigned to him.</div>
+<div class="prose">This is not who he is. It is what he looks like when he is in pain and does not have a way to put it down. Raphael knows who he actually is. Sol will learn. Everyone who gets past the armour finds someone with extraordinary moral depth, genuine warmth, and a capacity for loyalty that runs so deep it is almost its own kind of faith.</div>
+<div class="prose">His execution — public, humiliating, politically engineered by the person who was once his closest friend — is the event that breaks Sol and reshapes the world. He does not know what his death causes. He just dies.</div>
+
+<div class="content-h2">Appearance</div>
+<div class="field-group">
+  <span class="field-label">Hair</span>
+  <div class="field-value" contenteditable="false">Jet black, very long and flowing. In life this is his most visually striking feature. It is cut off before his execution as a ritual humiliation — which is why his ghost manifests with a choppy bob.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Height & Build</span>
+  <div class="field-value" contenteditable="false">Short, around 165cm. Slender, very agile. The build does not suggest the capacity, which has caught people off guard.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Prosthetic</span>
+  <div class="field-value" contenteditable="false">Metal prosthetic leg, left side. Not hidden. He does not hide it. He resents it, but he does not hide it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Clothing</span>
+  <div class="field-value" contenteditable="false">Full military regalia as a default. He is always, in some sense, the general. Off-duty he is not described in detail yet.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">General impression</span>
+  <div class="field-value" contenteditable="false">Commanding in a way that does not depend on height. The kind of presence that reorganises a room when it enters.</div>
+</div>
+
+<div class="content-h2">Personality</div>
+<div class="field-group">
+  <span class="field-label">Armour</span>
+  <div class="field-value" contenteditable="false">Cold, proud, sharp-tongued. The people who do not get past this see someone difficult and unapproachable and that is fine with him. He is not performing for strangers.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Reality</span>
+  <div class="field-value" contenteditable="false">Heart of gold is not a cliche here, it is the actual truth. He is genuinely principled in a way that costs him things. He is loyal past the point of reason. He is funny, in a dry and specific way, with people he trusts. He is capable of extraordinary gentleness that he never advertises.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The leg</span>
+  <div class="field-value" contenteditable="false">Affected him psychologically as much as physically. He had built his identity around physical competence, and losing it felt like losing a claim to himself. He expresses this as harshness toward Sol, who represents the healing he resents needing.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On Raphael</span>
+  <div class="field-value" contenteditable="false">Would never say out loud what Raphael means to him. Raphael knows anyway. This is one of the only relationships where Florence does not need to perform anything.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On Sol (eventually)</span>
+  <div class="field-value" contenteditable="false">The armour takes months to come down. When it does, what Sol finds underneath is someone who was worth the wait. Florence loves with his whole self, when he loves. He is not cautious about it. He just makes people work to get there.</div>
+</div>
+
+<div class="content-h2">Relationships</div>
+<div class="field-group">
+  <span class="field-label">Raphael</span>
+  <div class="field-value" contenteditable="false">The closest thing to unconditional that Florence has in his life. Raphael was sent to kill him, Florence caught him, Florence saved him and gave him a name. Now Raphael is the most important person in his life and Florence would not say so under torture.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Sol</span>
+  <div class="field-value" contenteditable="false">Months of difficulty, then a shift, then something he does not have good words for. He orients toward Sol in rooms without meaning to. Sol does the same. They are both very careful about this in public and not always successful.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Cecil</span>
+  <div class="field-value" contenteditable="false">Was once his closest friend. Is the person who has him executed. Florence trusted him. He should not have.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">His father</span>
+  <div class="field-value" contenteditable="false">The king. Their relationship is not detailed yet — Florence's relationship to his own royalty and family is a thread to develop.</div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-florence-living')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-florence-living"></div>
+
+</div>
+<div class="page" id="page-raphael">
+
+<div class="page-header">
+  <div class="page-category">Fantasy Era · Character</div>
+  <div class="page-title">Raphael</div>
+  <div class="page-desc">Lieutenant. Florence's second-in-command. Sun to Florence's moon. The reason Sol and Florence ever happened.</div>
+</div>
+<div class="tag-row"><span class="tag">Fantasy Era</span><span class="tag">Military</span><span class="tag">Florence's Lieutenant</span><span class="tag">Found Family</span><span class="tag">Sun Energy</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Raphael was sent to assassinate Florence as a child. Florence caught him. Florence's father ordered Raphael's execution. Florence intervened, took him in, and gave him a name and a life. This is the origin story of the most loyal relationship in the fantasy arc.</div>
+<div class="prose">Raphael is outgoing, upbeat, strong-willed, and possessed of a moral clarity that is instinctive rather than trained. He is the social glue of every group he is in. He hits it off with Sol almost immediately and spends months advocating loudly for Florence's hidden heart-of-gold in the face of Sol's reasonable scepticism. He is the reason Sol and Florence happen at the speed they do. Without him, it would have taken years.</div>
+<div class="prose">He is sun to Florence's moon. Where Florence is cold and quiet and private, Raphael is warm and loud and entirely comfortable being known. He does not need Florence to say out loud what he means to him. He already knows.</div>
+
+<div class="content-h2">Personality</div>
+<div class="field-group">
+  <span class="field-label">Temperament</span>
+  <div class="field-value" contenteditable="false">Upbeat, outgoing, warm. Genuinely optimistic about people in a way that has survived being sent to kill someone at a young age and coming back from it. He is not naive — he has seen things. He just does not let it make him closed.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Morals</span>
+  <div class="field-value" contenteditable="false">Strong and clear. He knows what he will and will not do and does not require much deliberation to reach these conclusions. He is the character who is reliably on the right side of things.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On Florence</span>
+  <div class="field-value" contenteditable="false">Finds him deeply funny and deeply admirable simultaneously. He has seen who Florence actually is from the beginning. The armour does not fool him. He advocates for Florence because he means it, not because he is obligated to.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On Sol</span>
+  <div class="field-value" contenteditable="false">Took to him immediately. Recognised another principled person and was delighted about it. His advocacy for Florence to Sol is genuine — he wants them both to be happy and he is pretty sure this is how that happens.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">On loyalty</span>
+  <div class="field-value" contenteditable="false">Absolute. He is not unthinkingly loyal — he has genuine moral convictions that could theoretically conflict with it — but in practice Florence has never asked him to do something he could not do. He would do anything for Florence. This is stated. He is comfortable stating it.</div>
+</div>
+
+<div class="content-h2">Relationships</div>
+<div class="field-group">
+  <span class="field-label">Florence</span>
+  <div class="field-value" contenteditable="false">The central relationship of his life. Found family in the deepest sense. Florence gave him everything — a name, a place, a purpose. He gives back everything he has.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Sol</span>
+  <div class="field-value" contenteditable="false">Fast friends. He is the bridge between Sol and Florence and genuinely invests in both of them as people.</div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-raphael')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-raphael"></div>
+
+</div>
+<div class="page" id="page-cecil">
+
+<div class="page-header">
+  <div class="page-category">Fantasy Era · Character</div>
+  <div class="page-title">Cecil</div>
+  <div class="page-desc">King. Childhood friend turned betrayer. The person whose actions ripple forward a thousand years.</div>
+</div>
+<div class="tag-row"><span class="tag">Fantasy Era</span><span class="tag">Royalty</span><span class="tag">Antagonist</span><span class="tag">Bloodline Cursed</span><span class="tag">Sol's Target</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">Cecil and Florence were childhood friends — princes from allied nations, close enough that the friendship was genuine. Whatever it was between them once, it did not survive what Cecil became when he took power.</div>
+<div class="prose">The details of his turn are not simple. The reasons involve Sol and the Solar Covenant in ways that are complicated. What the outcome is, is not complicated: Florence is publicly accused of treason, his hair is cut off in a ritual humiliation, and he is executed. The charges are fabricated or grossly distorted. Cecil orchestrated it.</div>
+<div class="prose">Cecil does not know what he sets in motion. He does not know about Sol's deal with Vesper. He does not know his bloodline is being modified in the stars. He does not know that his action will be the founding trauma of an institution that rules the world a thousand years later. He just knows he has consolidated his power and eliminated someone he once loved.</div>
+
+<div class="content-h2">Personality</div>
+<div class="field-group">
+  <span class="field-label">Before</span>
+  <div class="field-value" contenteditable="false">Genuinely friendly, from what can be inferred. The childhood friendship with Florence was real. He was a prince from an allied nation, close enough to Florence that they knew each other well.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">After</span>
+  <div class="field-value" contenteditable="false">Bitter. Something curdled. The mechanism of this turn is a thread to develop — what specifically happened, what Sol's involvement was, what Cecil knew and what he feared.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">As king</span>
+  <div class="field-value" contenteditable="false">A pragmatist turned into something uglier. He is capable of manufacturing consent, of engineering public humiliation, of using political machinery to do personal damage while keeping his own hands visible only as the authority that signed off.</div>
+</div>
+
+<div class="content-h2">Legacy</div>
+<div class="field-group">
+  <span class="field-label">The curse</span>
+  <div class="field-value" contenteditable="false">At Sol's request, Vesper plucked Cecil's string of fate from the stars and modified it so all his offspring would die before reaching adulthood. Usually sickness. Sometimes tragic accidents. A thousand years of this, dormant for most of it, then activating in the modern era through Arwin — who dies and is resurrected, technically satisfying the curse in a roundabout way.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">His descendants</span>
+  <div class="field-value" contenteditable="false">Arwin and Lucius, in the modern era, are both Cecil's descendants. Neither knows it. The green eyes Arwin carries are Cecil's eyes.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The humiliation ritual</span>
+  <div class="field-value" contenteditable="false">He cut Florence's hair before the execution. Florence did not get to choose how he faced his death. This specific act is the wound Florence's ghost carries without knowing why — he manifests with the choppy bob because his soul remembers being left that way.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; Why Cecil turned</span>
+  <div class="field-value" contenteditable="false">Still being developed. His reasons involve Sol and the Solar Covenant. The specifics of how a childhood friendship between princes became a public execution are a thread to flesh out.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What he did not know</span>
+  <div class="field-value" contenteditable="false">Sol's deal with Vesper. The fate modification. The fact that his bloodline would pay for what he did across a thousand years. The fact that Florence's grave would become a famous healing site powered by the grief of the man whose death he engineered. None of it. He just died, eventually, knowing he had won.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-cecil')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-cecil"></div>
+
+</div>
+<div class="page" id="page-abyssal-church">
+
+<div class="page-header">
+  <div class="page-category">Modern Era · Church</div>
+  <div class="page-title">The Abyssal Church</div>
+  <div class="page-desc">The dominant institution of the modern world. Governs everything. Built on a grief so old nobody remembers whose it was.</div>
+</div>
+<div class="tag-row"><span class="tag">Modern Era</span><span class="tag">Dominant</span><span class="tag">Political + Spiritual</span><span class="tag">Necromancy (banned)</span><span class="tag">Sol's Legacy</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">The Abyssal Church is not just a religion. It is the government, the law, the moral framework, the social structure. There is no meaningful separation between church and state in the modern world because the church ate the state so long ago that the distinction has become theoretical. The Bishop is the most powerful person alive. The church's doctrine is law. Its hierarchy is governance.</div>
+<div class="prose">It did not start this way. It was built in the Fantasy Era by someone who was trying to survive their grief, not build an empire. What it became over a thousand years is the result of many hands shaping something that began as one person's desperate attempt to put their life back together.</div>
+
+<div class="content-h2">Theology</div>
+<div class="field-group">
+  <span class="field-label">The Reclaimer</span>
+  <div class="field-value" contenteditable="false">The central figure of Abyssal theology. Associated with dominion over death — specifically, the reclaiming of souls. The Reclaimer is described in doctrine as a divine figure who mastered death and offered that mastery to the faithful. The iconography is death-adjacent: black, gold, skulls used as sacred objects, ritual language about reclamation and return.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Necromancy (official)</span>
+  <div class="field-value" contenteditable="false">Absolutely forbidden. A profound moral failing, according to doctrine. The use of death magic is considered profane and is legally as well as spiritually prohibited. Anyone practising it is a heretic.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Death rites</span>
+  <div class="field-value" contenteditable="false">Elaborate and specific. The church has strong opinions about how the dead should be treated and what the soul's journey looks like. This is taken very seriously.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The faithful</span>
+  <div class="field-value" contenteditable="false">Are largely not questioning the contradiction between banning necromancy and venerating a figure who has dominion over death. The theology has been constructed carefully enough that this tension is not visible from inside it.</div>
+</div>
+
+<div class="content-h2">Structure & Hierarchy</div>
+<div class="field-group">
+  <span class="field-label">The Bishop</span>
+  <div class="field-value" contenteditable="false">Absolute head. Political and spiritual authority combined. Currently Arwin. The Bishop's word is effectively law.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Senior churchmen</span>
+  <div class="field-value" contenteditable="false">Handle administration, law, ecclesiastical oversight, regional governance. Lucius is one of the most prominent. They run the day-to-day machinery of an institution that governs everything.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Specialist contractors</span>
+  <div class="field-value" contenteditable="false">The church quietly employs outside specialists for tasks it prefers not to make official. Rhys is one such specialist. This is not documented.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Succession</span>
+  <div class="field-value" contenteditable="false">The ritual of succession is not public knowledge in its details. What is known: the previous Bishop selects and prepares a successor. What is not widely known: the ritual involved in that succession.</div>
+</div>
+
+<div class="content-h2">Aesthetic</div>
+<div class="field-group">
+  <span class="field-label">Colours</span>
+  <div class="field-value" contenteditable="false">Black and gold. Always.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Robes</span>
+  <div class="field-value" contenteditable="false">Heavy, formal, elaborate. Gold embroidery. The Bishop's robes are a statement of power as much as religion.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Architecture</span>
+  <div class="field-value" contenteditable="false">Imposing. The Abyssal Cathedral is the seat of power — large, dark, gold-lit, built to make people feel small and the institution feel eternal.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Sacred objects</span>
+  <div class="field-value" contenteditable="false">The church uses skull iconography. This is not considered macabre within the tradition — skulls are symbols of the Reclaimer's dominion over death, of transformation, of the soul's journey. Outsiders find this unsettling.</div>
+</div>
+
+<div class="content-h2">History (public version)</div>
+<div class="field-group">
+  <span class="field-label">Origin</span>
+  <div class="field-value" contenteditable="false">The church's official history describes its founding as a divine revelation — the Reclaimer appeared and gave certain faithful the knowledge of death's true nature. The original faithful built the institution. It grew. It absorbed other institutions. It became what it is.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The Lunar heresy</span>
+  <div class="field-value" contenteditable="false">The church's official account of Lunar persecution is that Lunars practise profane death magic in ways that corrupt the soul's natural journey and that they historically opposed the Reclaimer's truth. They are heretics. The church has always known this. The persecution is justified.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The Solar Covenant</span>
+  <div class="field-value" contenteditable="false">Is a historical footnote. The official account is vague — something about a rival institution that failed. Not much is taught about it.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; True origin</span>
+  <div class="field-value" contenteditable="false">The Abyssal Church was founded by Solstice after the collapse of the Solar Covenant. Sol built it in grief, as a way to survive Florence's death and to give the power he had accidentally accumulated somewhere to go. He did not intend to build an empire. He did not intend to be worshipped. Both things happened anyway.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The Reclaimer is Sol</span>
+  <div class="field-value" contenteditable="false">The divine figure at the centre of Abyssal theology is Solstice. His name was lost. His story was mythologised. What remains is an approximation so distorted that Sol would not recognise himself in it. The church that persecutes Lunar practitioners in his name is persecuting them partly because of what they did during Sol's lifetime, distorted past recognition.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The necromancy irony</span>
+  <div class="field-value" contenteditable="false">The church bans necromancy. The church's Bishop is undead, created by a necromantic ritual. The church's founding figure was himself a practitioner of death magic. The church's central theology is named after a death-magic concept. The contradiction is total and nobody currently alive knows it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Arwin's succession</span>
+  <div class="field-value" contenteditable="false">The ritual Seval performed to make Arwin Bishop was necromantic. It killed Arwin and resurrected him as something other than fully alive. This is technically the most profound violation of Abyssal doctrine possible. It is also how the current Bishop was made. Seval knew this. Arwin did not choose it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Why Lunars are persecuted (true)</span>
+  <div class="field-value" contenteditable="false">The Lunars helped Cecil seal Vesper during the Fantasy Era. This was arguably the right call at the time. But Sol's grief built an institution that encoded their action as betrayal and heresy. The distortion happened over centuries. The persecution is built on something real that has been twisted beyond recognition.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-abyssal')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-abyssal"></div>
+
+</div>
+<div class="page" id="page-celestial-church">
+
+<div class="page-header">
+  <div class="page-category">Both Eras · Church</div>
+  <div class="page-title">The Celestial Church</div>
+  <div class="page-desc">Ancient. Star-worshipping. Headed by something that is not quite human. Has been here longer than anyone else and will probably outlast everyone.</div>
+</div>
+<div class="tag-row"><span class="tag">Both Eras</span><span class="tag">Ancient</span><span class="tag">Stars & Fate</span><span class="tag">Vesper</span><span class="tag">Acolytes Marked</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">The Celestial Church predates reliable records. Vesper has been at its head for as long as it has existed in its current form, which is longer than any other institution currently standing. It concerns itself with stars as living entities, with fate as a readable and occasionally modifiable text, and with forces that operate entirely outside human moral or physical frameworks.</div>
+<div class="prose">It is not the most powerful institution in the modern era — that is the Abyssal Church. But it is the oldest, and its head is the only living being who knows the full truth of how the world got to where it is. Vesper does not volunteer this information.</div>
+
+<div class="content-h2">Theology</div>
+<div class="field-group">
+  <span class="field-label">The stars</span>
+  <div class="field-value" contenteditable="false">Not symbols. Actual entities. The Celestial Church understands stars as beings with something resembling consciousness, with whom communion is possible if you know how. Vesper knows how. His acolytes learn to read starlight, to understand the patterns of fate written in the sky.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Fate</span>
+  <div class="field-value" contenteditable="false">The Celestial Church holds that fate is real and legible — written in the stars, accessible to those who know how to look. It is not fixed. It can be read, and in rare cases, modified. The modification costs something. The church does not advertise this.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Death and souls</span>
+  <div class="field-value" contenteditable="false">The Celestial Church does not have the same relationship to death as the Abyssal Church. It views the soul's journey as cosmic rather than institutional — the stars are involved, fate is involved, and what happens after death is a matter of celestial record rather than ecclesiastical procedure.</div>
+</div>
+
+<div class="content-h2">Structure</div>
+<div class="field-group">
+  <span class="field-label">Vesper</span>
+  <div class="field-value" contenteditable="false">Absolute head. Has always been the head. The church's structure exists below him and in service to his purposes.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Acolytes</span>
+  <div class="field-value" contenteditable="false">Vesper's direct pupils and servants. They are marked — a physical mark that allows Vesper to monitor them. This is presented as an honour and a protection. Whether it is experienced that way varies.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The Discarded</span>
+  <div class="field-value" contenteditable="false">A term used within and around the church for those who go through the Celestial Church's processes and come out changed. What is taken from them, and what is given in exchange, is not publicly documented. This is not an accident.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The broader faithful</span>
+  <div class="field-value" contenteditable="false">The church has a broader congregation who practice star-reading and fate-consultation in less intensive ways. They do not have the same relationship to Vesper as the acolytes.</div>
+</div>
+
+<div class="content-h2">History</div>
+<div class="field-group">
+  <span class="field-label">Fantasy Era</span>
+  <div class="field-value" contenteditable="false">One of the three major powers alongside the Solar and Lunar Covenants. Allied primarily with the Lunar Covenant during this period. Vesper was at full strength — significantly more powerful than his modern form. He modified Cecil's fate at Sol's request during this era.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The sealing</span>
+  <div class="field-value" contenteditable="false">Vesper was sealed in a church basement during the Fantasy Era. The Celestial Church without its head lost significant power and coherence during the approximately 1000 years he was gone.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Modern Era</span>
+  <div class="field-value" contenteditable="false">After Vesper was freed, the church rebuilt. He shifted alliance from the Lunar Covenant to the Abyssal Church when Arwin came to power — a pragmatic calculation. The Lunars lost their last major protection as a result.</div>
+</div>
+
+<div class="content-h2">Relationship to Other Institutions</div>
+<div class="field-group">
+  <span class="field-label">Abyssal Church (modern)</span>
+  <div class="field-value" contenteditable="false">Allied. The alliance is functional if somewhat strange — Arwin and Vesper have an infrequent and odd working relationship. Neither fully understands the other.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Lunar Covenant (modern)</span>
+  <div class="field-value" contenteditable="false">Formerly allied. Now abandoned. No active hostility — Vesper does not carry grudges in a human way — but no protection either.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Solar Covenant (fantasy)</span>
+  <div class="field-value" contenteditable="false">Not directly allied. The Solar Covenant's relationship to the Celestial Church was mediated through Sol personally.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; What Vesper's communion actually means</span>
+  <div class="field-value" contenteditable="false">When Vesper communes with stars, it is not metaphorical. He is in actual communication with entities that exist on a cosmic scale. The information he receives from these entities is part of how he has maintained his position and knowledge across centuries. The stars told him things about fate, about people, about the structure of the world that no human practitioner could access.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The fate modification</span>
+  <div class="field-value" contenteditable="false">When Sol asked Vesper to curse Cecil's bloodline, Vesper literally plucked Cecil's string of fate from the star-map and modified it. This cost him something. The scale of the modification — affecting every descendant across an unlimited future — was an enormous use of power even at his full strength. In his current diminished state he could not do this.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The Discarded</span>
+  <div class="field-value" contenteditable="false">What exactly is taken from people who go through the church's more intensive processes is not publicly documented because what is taken is difficult to name. Something to develop — there is something Vesper needs or uses that these processes supply.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The mark</span>
+  <div class="field-value" contenteditable="false">The mark on acolytes does allow Vesper to monitor them. It also does something else that acolytes are not fully informed about at the time of marking. To be developed.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-celestial')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-celestial"></div>
+
+</div>
+<div class="page" id="page-lunar-modern">
+
+<div class="page-header">
+  <div class="page-category">Modern Era · Church / Faction</div>
+  <div class="page-title">The Lunar Covenant</div>
+  <div class="page-desc">Persecuted minority. Heretics by official decree. Their crime is 1000 years old and was never quite what anyone said it was.</div>
+</div>
+<div class="tag-row"><span class="tag">Modern Era</span><span class="tag">Persecuted</span><span class="tag">Heretics</span><span class="tag">No Central Leadership</span><span class="tag">White Hair</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">The Lunar Covenant in the modern era is not an institution in any meaningful sense. It has no central leadership, no formal structure, no protected spaces. It is a people — identifiable by their white hair and elf-like ears, impossible to hide — who practice their traditions quietly or not at all and navigate a world that has officially decided they are dangerous.</div>
+<div class="prose">The Abyssal Church classifies them as heretics. This is not abstract. It has legal, social, and physical consequences. Lunars cannot hold certain positions, cannot practice openly, cannot in many contexts trust that being known for what they are will not cost them something.</div>
+
+<div class="content-h2">Identification</div>
+<div class="field-group">
+  <span class="field-label">Physical traits</span>
+  <div class="field-value" contenteditable="false">Bright white hair. Typically elf-like ears — pointed, visible. These traits are present in most Lunar practitioners and cannot be concealed without significant effort. You know a Lunar when you see one.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The consequence</span>
+  <div class="field-value" contenteditable="false">There is no passing. There is no hiding. Every Lunar who exists in public space is making a visible statement by existing. Rhys has made a career out of weaponising this visibility rather than being diminished by it. Not everyone has that option.</div>
+</div>
+
+<div class="content-h2">Abilities</div>
+<div class="field-group">
+  <span class="field-label">Communication with the dead</span>
+  <div class="field-value" contenteditable="false">Core Lunar ability. Genuine communion with ghosts and other non-corporeal entities. Most people cannot do this at all.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Seership</span>
+  <div class="field-value" contenteditable="false">Perception of things others cannot perceive. Sometimes prophetic, sometimes just sensitive. Variable in specificity and reliability.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Exorcism</span>
+  <div class="field-value" contenteditable="false">Removal or containment of hostile entities. Practical, dangerous, exhausting.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The toll</span>
+  <div class="field-value" contenteditable="false">All of these abilities carry a psychological cost proportional to their use. This is not widely advertised. Lunattics who use their abilities extensively pay for it in ways that are not visible on the outside until they are.</div>
+</div>
+
+<div class="content-h2">Why They Are Persecuted</div>
+<div class="field-group">
+  <span class="field-label">Official reason</span>
+  <div class="field-value" contenteditable="false">Heresy. Specifically: the Lunar practice of death magic and communication with the dead is classified as profane under Abyssal doctrine. Lunars are said to corrupt the soul's natural journey. They are said to have historically opposed the Reclaimer's truth.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Historical reason (public distortion)</span>
+  <div class="field-value" contenteditable="false">The Lunars did something during the Fantasy Era that the Abyssal Church encoded as betrayal. Over a thousand years this has been distorted, exaggerated, and weaponised. Some of what is said about Lunars is grounded in something real. Most of it is not.</div>
+</div>
+
+<div class="content-h2">Modern Lunars</div>
+<div class="field-group">
+  <span class="field-label">Practice</span>
+  <div class="field-value" contenteditable="false">Mostly quiet. Hidden where possible. Some communities maintain traditions in private. Others have largely abandoned formal practice while retaining identity.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The church exploit</span>
+  <div class="field-value" contenteditable="false">The Abyssal Church quietly uses Lunar abilities while publicly persecuting Lunar people. Rhys is the most visible example. This arrangement is not unique to him.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Lucius</span>
+  <div class="field-value" contenteditable="false">The most prominent anti-Lunar voice in the modern church. His hatred is personal — his family was directly cursed by Lunar practitioners. He does not know the full history of why.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; What they actually did</span>
+  <div class="field-value" contenteditable="false">The Lunars helped Cecil seal Vesper during the Fantasy Era. At the time this was arguably the correct call — Vesper was extremely powerful and in alliance with Sol, whose grief-driven actions were catastrophic. Sealing Vesper was a response to a genuine threat. They were not wrong, exactly.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Why it became heresy</span>
+  <div class="field-value" contenteditable="false">Sol built the Abyssal Church after the Lunars helped seal Vesper. His grief encoded the Lunars' action as betrayal. Over a thousand years this became doctrine and then law and then the justification for systematic persecution. The people being persecuted now had nothing to do with what happened then.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The Lucius irony</span>
+  <div class="field-value" contenteditable="false">Lucius's family was cursed because they are Cecil's descendants, and Cecil's fate was modified because Cecil killed Florence, and the Lunars who helped seal Vesper were trying to stop the catastrophic aftermath of Florence's death. His hatred of Lunars is directed at the wrong target for the wrong reasons and is itself a consequence of his own bloodline's actions.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The Rhys irony</span>
+  <div class="field-value" contenteditable="false">Rhys's abilities make him useful to the institution that persecutes his people. He is paid by the church for the gifts that the church claims are profane. This is not lost on him, though he handles it with aggressive pragmatism rather than confrontation.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-lunar-modern')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-lunar-modern"></div>
+
+</div>
+<div class="page" id="page-solar-covenant">
+
+<div class="page-header">
+  <div class="page-category">Fantasy Era · Church</div>
+  <div class="page-title">The Solar Covenant</div>
+  <div class="page-desc">Major institution of the Fantasy Era. Healing, light, life. Does not survive.</div>
+</div>
+<div class="tag-row"><span class="tag">Fantasy Era</span><span class="tag">Dissolved</span><span class="tag">Healing</span><span class="tag">Golden Hair</span><span class="tag">Sol's Home</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">The Solar Covenant is one of the three major powers of the Fantasy Era alongside the Lunar Covenant and the Celestial Church. It is associated with healing, light, and life. Its practitioners are identifiable by their golden blonde hair — a trait tied to Solar affiliation the way white hair is tied to Lunar.</div>
+<div class="prose">It has its own hierarchy, its own traditions, its own centuries of history. Sol's grandmother is currently its head when Sol begins his arc. Sol is her heir apparent. The Covenant is in good standing, politically allied with the Lunars, not at war with anyone. It is in a period of relative stability.</div>
+<div class="prose">This does not last.</div>
+
+<div class="content-h2">Theology</div>
+<div class="field-group">
+  <span class="field-label">Light and life</span>
+  <div class="field-value" contenteditable="false">The Solar Covenant concerns itself with the living — healing, growth, light as a force of restoration. Its practitioners are primarily healers and leaders. The theology is life-affirming in a way that makes its eventual collapse all the more devastating.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The head's role</span>
+  <div class="field-value" contenteditable="false">The head of the Covenant holds significant spiritual and political authority. The position carries real power — not just ceremonial. Sol's grandmother holds this. Sol is being prepared to inherit it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Relationship to death</span>
+  <div class="field-value" contenteditable="false">The Solar Covenant does not engage with death magic in the way Lunar practitioners do. There is some capacity — Sol has abilities in this direction that are not standard — but it is not the centre of Solar practice.</div>
+</div>
+
+<div class="content-h2">Structure</div>
+<div class="field-group">
+  <span class="field-label">The head</span>
+  <div class="field-value" contenteditable="false">Absolute spiritual authority. Sol's grandmother currently. The position is apparently heritable or at minimum the heir is selected and trained within the family.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Practitioners</span>
+  <div class="field-value" contenteditable="false">Healers primarily. Assigned to military units, noble courts, diplomatic missions. Sol's first assignment to Florence is standard for someone at his level of training and lineage.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Golden hair</span>
+  <div class="field-value" contenteditable="false">A Solar trait. All practitioners are typically blonde. This is either a magical effect of Solar practice or a trait that naturally occurs in families with Solar ability — this is to be developed.</div>
+</div>
+
+<div class="content-h2">Relationships with other factions</div>
+<div class="field-group">
+  <span class="field-label">Lunar Covenant</span>
+  <div class="field-value" contenteditable="false">Historically at war. By the time of Sol's arc, this has been resolved and they are more allied than opposed. The wars are in the past. There are tensions still but they are not active conflict.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Celestial Church</span>
+  <div class="field-value" contenteditable="false">Not directly allied in the way Solar and Lunar are. The relationship is mediated through individuals — Sol's connection to Vesper is personal, not institutional.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Military</span>
+  <div class="field-value" contenteditable="false">The Covenant provides healers to military units. Florence's assignment is how Sol and Florence meet. This is normal for the Covenant.</div>
+</div>
+
+<div class="content-h2">Dissolution</div>
+<div class="field-group">
+  <span class="field-label">What happens</span>
+  <div class="field-value" contenteditable="false">The Solar Covenant does not survive the Fantasy Era. Its end is connected to Sol's actions after Florence's execution. Cecil orders the remaining members killed and the records burned. Some survive, scattered. They are irrelevant remnants by the time the modern era arrives.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What remains</span>
+  <div class="field-value" contenteditable="false">Nothing institutional. The Abyssal Church's official history barely mentions it. A thousand years of deliberate erasure has been effective.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; Sol's role in the dissolution</span>
+  <div class="field-value" contenteditable="false">Sol's actions after Florence's death — his deal with Vesper, the things he did in grief — gave Cecil the justification or the opening to order the Covenant destroyed. The precise mechanism is a thread to develop. What is clear is that Sol's breakdown is the proximate cause.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; The Reclaimer connection</span>
+  <div class="field-value" contenteditable="false">The theology Sol built after the Covenant's collapse drew on Solar tradition in ways that are now unrecognisable. The Abyssal Church's death-adjacent iconography is a corruption of Solar healing imagery. Something to develop in more detail.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What survived</span>
+  <div class="field-value" contenteditable="false">Some practitioners survived the purge. They are scattered, irrelevant, in hiding. In the modern era they are not a functioning institution. Whether any lineage or tradition has persisted in hidden form is a thread to develop.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-solar')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-solar"></div>
+
+</div>
+<div class="page" id="page-lunar-fantasy">
+
+<div class="page-header">
+  <div class="page-category">Fantasy Era · Church / Faction</div>
+  <div class="page-title">The Lunar Covenant (Fantasy Era)</div>
+  <div class="page-desc">Major faction of the Fantasy Era. Allied with Solar by this point. Makes a decision that echoes for a thousand years.</div>
+</div>
+<div class="tag-row"><span class="tag">Fantasy Era</span><span class="tag">Major Faction</span><span class="tag">Allied with Solar</span><span class="tag">White Hair</span><span class="tag">The Sealing</span></div>
+
+<div class="content-h2">Overview</div>
+<div class="prose">The Lunar Covenant in the Fantasy Era is a major religious and political faction — one of the three powers alongside Solar and Celestial. It has a long history, including wars with the Solar Covenant that ended generations before Sol's arc begins. By the time of Sol and Florence, Solar and Lunar are more allied than opposed.</div>
+<div class="prose">The Lunar Covenant makes a decision during the Fantasy Era that defines the next thousand years of their existence. They help Cecil seal Vesper. At the time this seems like the right call. It is not wrong, exactly. What happens to them because of it is a case study in how being on the correct side of a specific moment can become the justification for persecution by the institution that rises from the ashes of that moment.</div>
+
+<div class="content-h2">Theology</div>
+<div class="field-group">
+  <span class="field-label">Death and communication</span>
+  <div class="field-value" contenteditable="false">Lunar theology centres on the relationship between the living and the dead. Communication with the dead is not profane in Lunar practice — it is sacred, an act of respect and continuity. Seership is similarly respected.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The toll acknowledged</span>
+  <div class="field-value" contenteditable="false">Lunar tradition is aware that these practices have costs. It has frameworks for managing them, for supporting practitioners who carry heavy loads, for understanding when someone has given too much. These frameworks have largely not survived into the modern era.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The moon</span>
+  <div class="field-value" contenteditable="false">The moon as a theological symbol represents cycles, transitions, the space between life and death, the underworld and the upper world. Lunar practice is oriented around liminal states.</div>
+</div>
+
+<div class="content-h2">The Sealing</div>
+<div class="field-group">
+  <span class="field-label">What they did</span>
+  <div class="field-value" contenteditable="false">A coalition including Lunar practitioners and Cecil helped seal Vesper — pinning him to a stone slab with a star shard through his throat and hands. He was left conscious but completely immobile.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Why</span>
+  <div class="field-value" contenteditable="false">Vesper was in alliance with Sol, whose actions in his grief were catastrophic. Sealing Vesper was intended to limit the damage Sol could do with Vesper's backing. It was a pragmatic calculation made in a crisis.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Whether it was right</span>
+  <div class="field-value" contenteditable="false">Complicated. Sol was hurting people. Vesper was enabling it. The seal stopped something. It also trapped a conscious being for a thousand years. Whether the Lunars understood the full consequences of what they were sealing is a thread to develop.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The aftermath for Lunars</span>
+  <div class="field-value" contenteditable="false">Sol's grief built an institution that encoded this action as betrayal. A thousand years later, Lunars are persecuted for what their predecessors did in what they believed were the right circumstances. The people being persecuted were not there. They did not make that choice. They are paying for it anyway.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; Sol's attempt to free Vesper</span>
+  <div class="field-value" contenteditable="false">Sol tried to free Vesper after he was sealed. He failed. This is one of the last things Sol tried to do — an attempt at rescue, not revenge. The star shard held. Sol could not undo what Cecil and the Lunars had done. He died without freeing him.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; What the Lunars did not know</span>
+  <div class="field-value" contenteditable="false">Whether the Lunars fully understood that Vesper would be conscious during the sealing. Whether they knew the duration. Whether they understood that Sol would survive and build an institution that would persecute them for it. Probably not. Probably none of this was fully visible at the time.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-lunar-fantasy')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-lunar-fantasy"></div>
+
+</div>
+<div class="page" id="page-relationships-modern">
+
+<div class="page-header">
+  <div class="page-category">Modern Era</div>
+  <div class="page-title">Relationships & Dynamics</div>
+  <div class="page-desc">What people are to each other. What they don't know. What they won't say.</div>
+</div>
+
+<div class="content-h2">Arwin & Rhys</div>
+<div class="tag-row"><span class="tag">slow burn</span><span class="tag">complicated fwb</span><span class="tag">neither will admit it</span><span class="tag">both wrong about the other</span></div>
+<div class="field-group">
+  <span class="field-label">What it is</span>
+  <div class="field-value" contenteditable="false">An arrangement neither has named. Arwin finds Rhys useful and genuinely compelling in ways he has not fully examined. Rhys finds Arwin suspicious and compelling in equal measure. There is a lot of dry wit and plausible deniability and both of them are more invested than they perform.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The dynamic</span>
+  <div class="field-value" contenteditable="false">Banter. Arwin is playful and a little cutting; Rhys matches him and sometimes goes further. Genuine amusement on both sides. Genuine friction on both sides. They are both more perceptive than they let on and both performing less care than they feel.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Arwin thinks</span>
+  <div class="field-value" contenteditable="false">That Rhys wants the Bishop, not the person. He has learned to assume this. It protects him.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Rhys thinks</span>
+  <div class="field-value" contenteditable="false">That Arwin sees him as a useful asset with a good personality. Desirable in the general sense. Not specific.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What is actually true</span>
+  <div class="field-value" contenteditable="false">They are both wrong. They are both more seen by the other than they have allowed themselves to believe.</div>
+</div>
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; The convergence point</span>
+  <div class="field-value" contenteditable="false">Florence is hunting Cecil's bloodline. Arwin is Cecil's bloodline. Rhys is friends with Florence. When this comes out, Rhys will be standing between his ghost friend's legitimate thousand-year grief and his situationship's complete ignorance of all of it. He has no preparation for this moment and it is coming.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<div class="content-h2">Rhys & Florence</div>
+<div class="tag-row"><span class="tag">bickering</span><span class="tag">reluctant partnership</span><span class="tag">mirror dynamic</span><span class="tag">accidentally healing each other</span></div>
+<div class="field-group">
+  <span class="field-label">Origin</span>
+  <div class="field-value" contenteditable="false">Rhys performed a ritual near a healing creek expecting a genie. Florence showed up — confused, amnesiac, furious, enormous as a presence. Rhys is the only person who can consistently perceive him. Neither chose this.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What it is now</span>
+  <div class="field-value" contenteditable="false">Bickering quasi-partnership. The energy of immature siblings who would never admit to caring about each other and clearly do. Florence is sarcastic about Rhys's life choices. Rhys is cavalier about Florence's existential situation. They are both, underneath this, actually paying attention to each other.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The mirror</span>
+  <div class="field-value" contenteditable="false">Florence lost all his armour when he lost his memory — he is raw feeling without context, stripped of the defences he spent a lifetime building. Rhys performs confidence constantly and has done for so long he is not always sure where the performance ends. Two people who are very bad at being seen, accidentally seeing each other.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Florence gives Rhys</span>
+  <div class="field-value" contenteditable="false">Someone who has no investment in the performance. Florence does not know Rhys's reputation, his image, what he is supposed to be. He just sees what is in front of him and finds it either adequate or inadequate on its own terms.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Rhys gives Florence</span>
+  <div class="field-value" contenteditable="false">Continuity. Witness. The only person who can actually perceive him, paying attention while Florence pieces himself back together. Rhys is, without meaning to be, the person helping Florence remember how to be a person.</div>
+</div>
+
+<div class="content-h2">Lucius & Rhys</div>
+<div class="tag-row"><span class="tag">forced proximity</span><span class="tag">antagonistic</span><span class="tag">reluctant respect</span><span class="tag">destabilising each other</span></div>
+<div class="field-group">
+  <span class="field-label">The setup</span>
+  <div class="field-value" contenteditable="false">Arwin assigned Lucius to accompany Rhys on a ghost investigation. Official oversight and ecclesiastical supervision. Unofficial: they are stuck in a carriage together for days and Lucius is the church's most prominent Lunar hater and Rhys is visibly and proudly Lunar.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Lucius's experience</span>
+  <div class="field-value" contenteditable="false">Deeply aggravating. Rhys refuses to take him seriously. Rhys is irreverent about everything Lucius holds serious. Rhys is also, irritatingly, competent at the thing they are there to do.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Rhys's experience</span>
+  <div class="field-value" contenteditable="false">Finds Lucius funny. The severity, the control, the perpetual frown — Rhys has decided this is a comedy. He is not entirely wrong.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What shifts</span>
+  <div class="field-value" contenteditable="false">When things get dangerous, Lucius helps. Not warmly. Not kindly. Pragmatically, effectively, without fanfare. This lands differently than comfort would have. And Rhys is, possibly for the first time, someone who does not want anything from Lucius. Not the family name. Not the church position. Not approval. He just finds Lucius funny and irritating. This is genuinely destabilising for someone who has structured his entire life around being wanted for what he represents.</div>
+</div>
+
+<div class="content-h2">Lucius & Ambrose</div>
+<div class="tag-row"><span class="tag">fierce protectiveness</span><span class="tag">older brother</span><span class="tag">one-sided understanding</span></div>
+<div class="field-group">
+  <span class="field-label">Overview</span>
+  <div class="field-value" contenteditable="false">The most honest relationship Lucius has. With Ambrose he is not performing or calculating — he is just a person who loves someone and is terrified of losing them.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The weight</span>
+  <div class="field-value" contenteditable="false">Ambrose has been sick his whole life from a supernatural cause Lucius cannot fix. Their father sees Ambrose as a disappointment. Lucius has been running between protecting Ambrose and performing adequacy for their father for his entire life. He is exhausted in a way he does not acknowledge.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Ambrose understands</span>
+  <div class="field-value" contenteditable="false">That Lucius protects him. Not fully what it costs. Not the history of the curse. Not what Lucius has made of himself in response to it.</div>
+</div>
+
+<div class="content-h2">Vesper & Lysander</div>
+<div class="tag-row"><span class="tag">complicated devotion</span><span class="tag">power imbalance</span><span class="tag">ambiguous</span><span class="tag">Vesper cannot fully reciprocate</span></div>
+<div class="field-group">
+  <span class="field-label">Overview</span>
+  <div class="field-value" contenteditable="false">Lysander's feelings toward Vesper resist every category. Not admiration, not fear, not love — something that operates in the spaces between those things. Genuine devotion through genuine resentment.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Lysander wants</span>
+  <div class="field-value" contenteditable="false">To understand Vesper. To be seen by Vesper. To have made a different choice, sometimes.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Vesper can give</span>
+  <div class="field-value" contenteditable="false">Not what Lysander wants, in the ways Lysander wants it. Vesper is not capable of reciprocating in human terms. What he can give is proximity to something enormous, access to knowledge most people will never have, and the particular feeling of being chosen by something that does not choose often.</div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-relationships-modern')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-relationships-modern"></div>
+
+</div>
+<div class="page" id="page-relationships-fantasy">
+
+<div class="page-header">
+  <div class="page-category">Fantasy Era</div>
+  <div class="page-title">Relationships & Dynamics</div>
+  <div class="page-desc">The loves and betrayals that created the modern world.</div>
+</div>
+
+<div class="content-h2">Florence & Solstice</div>
+<div class="tag-row"><span class="tag">slow burn</span><span class="tag">antagonistic start</span><span class="tag">profound when it lands</span><span class="tag">the loss that reshapes everything</span></div>
+<div class="field-group">
+  <span class="field-label">How they meet</span>
+  <div class="field-value" contenteditable="false">Sol is assigned to Florence as his healer — his first post. Florence is in a bad place: leg recently amputated, pride damaged, resentful of needing to be looked after. He is horrible to Sol for months. This is not who Florence is. It is what he looks like when he is in pain and has nowhere to put it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The thaw</span>
+  <div class="field-value" contenteditable="false">Raphael is the catalyst. He hits it off with Sol immediately and spends months loudly advocating for Florence's hidden heart-of-gold in the face of Sol's reasonable scepticism. Without Raphael it would have taken years. With him, months.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Sol sees eventually</span>
+  <div class="field-value" contenteditable="false">Someone with genuine moral depth, real courage, dry humour that comes out when the armour is down, and a capacity for loyalty that runs so deep it is almost its own religion. Florence is worth the wait. Sol finds this out.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">At its peak</span>
+  <div class="field-value" contenteditable="false">Quiet. Private. They are both very aware of the professional context and both very careful about it in public and not always successful. Florence orients toward Sol in rooms without meaning to. Sol does the same. There is enormous trust once it is there — the kind that makes you think the person is somewhere safe.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What it looks like in public</span>
+  <div class="field-value" contenteditable="false">Professional distance maintained with varying degrees of success. Raphael watches them both with undisguised satisfaction. Florence giving Raphael additional drill duties for knowing too much about military matters.</div>
+</div>
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; The loss and what it causes</span>
+  <div class="field-value" contenteditable="false">Cecil's betrayal and Florence's execution destroys Sol. Not metaphorically. Everything Sol does after — every deal made, every institution built, every thousand-year consequence that shapes the modern world — comes from this grief. The Abyssal Church is the shape Sol's love for Florence took when it had nowhere left to go.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">&#128274; Florence's grave</span>
+  <div class="field-value" contenteditable="false">Sol spent the rest of his life putting magic into Florence's burial site. He could not bring him back. He kept trying anyway. The magic accumulated for centuries. Florence is powerful enough as a ghost partly because he has been marinating in Sol's grief-love for a millennium. Sol did bring him back. He just did not live to know it.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<div class="content-h2">Florence & Raphael</div>
+<div class="tag-row"><span class="tag">sun and moon</span><span class="tag">found family</span><span class="tag">absolute loyalty</span><span class="tag">Florence would never admit it</span></div>
+<div class="field-group">
+  <span class="field-label">Origin</span>
+  <div class="field-value" contenteditable="false">Raphael was sent to assassinate Florence as a child. Florence caught him. Florence's father ordered Raphael's execution. Florence intervened, took him in, gave him a name and a life. Raphael has been loyal ever since — not out of obligation, but because Florence gave him something real and Raphael is the kind of person who repays that with everything he has.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The dynamic</span>
+  <div class="field-value" contenteditable="false">Sun and moon. Raphael is warmth and light and outgoing optimism. Florence is quieter, colder, private. Raphael is the one who makes Florence's heart-of-gold visible to everyone else, including eventually Sol. He knows who Florence is from the beginning and never stops saying so.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Florence's side</span>
+  <div class="field-value" contenteditable="false">Would never say out loud what Raphael means to him. Has expressed it in actions over years — the initial rescue, the name, the space made for Raphael in his life. Raphael knows this. He finds it endearing. He says so. Florence punishes him for this with additional duties and does not hide that he is fond.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Raphael gives Sol and Florence</span>
+  <div class="field-value" contenteditable="false">He is the reason it happens at the speed it does. He advocates, he pushes, he refuses to let Florence's armour be the final word on who Florence is. He does this because he loves Florence and because he is right about Sol and because he cannot stop himself from trying to make the people he cares about happy.</div>
+</div>
+
+<div class="content-h2">Solstice & Vesper</div>
+<div class="tag-row"><span class="tag">the only one</span><span class="tag">strange longing</span><span class="tag">deal made in grief</span><span class="tag">across millennia</span></div>
+<div class="field-group">
+  <span class="field-label">How it starts</span>
+  <div class="field-value" contenteditable="false">Sol approaches Vesper in desperation, after Florence's execution, looking for knowledge or power or anything that might undo what happened. Vesper engages. A relationship develops — not equal, not human-shaped, but real on both sides in whatever way real is possible for each of them.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Vesper developed</span>
+  <div class="field-value" contenteditable="false">Something that functions like longing. The closest he has come to caring about a specific person. Sol is the only being Vesper has ever genuinely gotten along with, across however many centuries he has existed. This is not nothing. For something like Vesper, this is an enormous amount.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Sol got</span>
+  <div class="field-value" contenteditable="false">The knowledge he asked for. Too late. And something he did not ask for — a relationship with something vast and incomprehensible that was, in its way, genuine. He tried to save Vesper when the sealing happened. He failed. He carried that failure until he died.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The millennium between</span>
+  <div class="field-value" contenteditable="false">Vesper carried Sol's skull across a thousand years. He carried Sol's eye in his own skull. He lay paralysed for a century-of-centuries and the only company was what remained of the one person he had gotten along with. His grip on linear time has never fully recovered.</div>
+</div>
+
+<div class="content-h2">Florence & Cecil</div>
+<div class="tag-row"><span class="tag">childhood to catastrophe</span><span class="tag">friendship to betrayal</span><span class="tag">1000 years of consequence</span></div>
+<div class="field-group">
+  <span class="field-label">Background</span>
+  <div class="field-value" contenteditable="false">They were childhood friends — princes from allied nations. Close enough that the friendship was genuine. This matters. Cecil is not a stranger. He is someone Florence trusted.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The betrayal</span>
+  <div class="field-value" contenteditable="false">Cecil becomes king. Something turns. The reasons involve Sol and the Solar Covenant in ways to be developed. The outcome is Florence publicly accused of treason, his hair cut off before the execution as a ritual humiliation, and killed. Cecil engineered this. The charges were fabricated or grossly distorted.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The humiliation</span>
+  <div class="field-value" contenteditable="false">The hair cutting specifically. Florence had very long jet black hair — his most visually striking feature. Cecil cut it off before the execution. A deliberate, visible degradation. Florence's ghost carries this wound without knowing why. He manifests with the choppy bob because his soul remembers being left that way.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Cecil set in motion</span>
+  <div class="field-value" contenteditable="false">Sol's grief. The collapse of the Solar Covenant. The founding of the Abyssal Church. The curse on Cecil's bloodline. The thousand-year persecution of the Lunars. Florence's haunting of the modern world. All of it — all of it — is downstream of what Cecil did to one person he used to love.</div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-relationships-fantasy')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-relationships-fantasy"></div>
+
+</div>
+<div class="page" id="page-world-lore">
+
+<div class="page-header">
+  <div class="page-category">World</div>
+  <div class="page-title">World Lore & History</div>
+  <div class="page-desc">What is true, what was forgotten, and what was never meant to be known.</div>
+</div>
+
+<div class="content-h2">The Two Timelines</div>
+<div class="field-group">
+  <span class="field-label">Fantasy Era</span>
+  <div class="field-value" contenteditable="false">The past. Approximately 1000 years before the modern era. Three major institutions share power. The world is more pluralistic, more fractured, more contested. Individual people can shape history directly because the institutions are not yet hegemonic.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Modern Era</span>
+  <div class="field-value" contenteditable="false">The present. The Abyssal Church governs everything. The world is more consolidated, more controlled, more surveilled. Individual power exists but operates within or against a much larger machine.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The connection</span>
+  <div class="field-value" contenteditable="false">Every major feature of the modern world is a direct consequence of events in the Fantasy Era. The characters living in the modern era are largely unaware of the true history of how their world got to where it is. The gap between what happened and what is known is enormous.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The 1000 years</span>
+  <div class="field-value" contenteditable="false">A long time. Long enough for institutions to rise and fall. Long enough for people to be born and die and be born again for thirty or forty generations. Long enough for truth to become myth and myth to become doctrine and doctrine to become law. Long enough for the person who started all of this to be reduced to a symbol he would not recognise.</div>
+</div>
+
+<div class="content-h2">Power Structure</div>
+<div class="field-group">
+  <span class="field-label">Fantasy Era</span>
+  <div class="field-value" contenteditable="false">Three major institutions: Solar Covenant, Lunar Covenant, Celestial Church. Smaller factions (the Forge, others) exist in the margins. No single institution has hegemony. Political power is distributed, contested, negotiated.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Modern Era</span>
+  <div class="field-value" contenteditable="false">The Abyssal Church holds a near-total monopoly. Spiritual authority, political governance, and law are all centralised. The Celestial Church exists as a significant secondary power. The Lunar Covenant is a persecuted remnant. The Solar Covenant is a historical footnote. Smaller factions are mostly irrelevant.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">How the shift happened</span>
+  <div class="field-value" contenteditable="false">Over a thousand years, gradually. The institution Sol built in grief expanded through the mechanisms that institutions expand — absorbing smaller powers, establishing legal authority, eliminating competitors or driving them underground. This was not Sol's intention. It is what institutions do when nobody stops them.</div>
+</div>
+
+<div class="content-h2">Distorted History</div>
+<div class="field-group">
+  <span class="field-label">The principle</span>
+  <div class="field-value" contenteditable="false">A thousand years is a long time. True history gets buried, rewritten, simplified, weaponised, and forgotten. What the modern world believes about its own origins is a mix of partial truth, deliberate distortion, mythological accretion, and genuine forgetting.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The Lunar persecution</span>
+  <div class="field-value" contenteditable="false">The most visible example. The official reason is heresy. The actual historical reason is that Lunars helped seal Vesper during the Fantasy Era — an action that was arguably correct at the time and has been distorted into something unrecognisable over a millennium. The people being persecuted now had nothing to do with it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The Abyssal Church's origin</span>
+  <div class="field-value" contenteditable="false">The church's official history describes a divine revelation and the faithful who built an institution around it. The actual origin is a grieving man building something to survive in after the death of the person he loved. Both histories are true in different senses. Only one is taught.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The Solar Covenant</span>
+  <div class="field-value" contenteditable="false">Almost completely erased. A thousand years of deliberate suppression has been effective. The modern world does not know what the Solar Covenant was, what it did, or that its founding figure became the Reclaimer they venerate.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Who knows the truth</span>
+  <div class="field-value" contenteditable="false">Vesper. He was there. He knows everything — the founding of the Abyssal Church, who Sol was, what the Reclaimer actually means, why the Solar Covenant collapsed, what the Lunars actually did and why. He does not volunteer this information. He is the only living being who holds all of it.</div>
+</div>
+
+<div class="content-h2">Magic System Overview</div>
+<div class="field-group">
+  <span class="field-label">Lunar magic</span>
+  <div class="field-value" contenteditable="false">Communication with the dead, seership, exorcism. Identifiable practitioners: white hair, elf ears. Psychological cost to use. Officially banned/persecuted.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Solar magic</span>
+  <div class="field-value" contenteditable="false">Healing, light, life. Identifiable practitioners: golden blonde hair. Can be imbued into places and objects, persisting for centuries. Associated institution dissolved.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Celestial magic</span>
+  <div class="field-value" contenteditable="false">Fate reading and modification, star communion, forces outside human frameworks. Vesper's abilities are in a category of their own. The mark on acolytes is related to this.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Necromancy</span>
+  <div class="field-value" contenteditable="false">Officially banned. Real and functional. The church that bans it was founded by someone who practised it. Its current Bishop is the product of it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Ghost mechanics</span>
+  <div class="field-value" contenteditable="false">Ghosts manifest as how they remember themselves at death, including psychological wounds. Most are weak. Power accrues over time, especially near magical sites. A sufficiently powerful ghost can interact with the world like a living person.</div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-world-lore')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-world-lore"></div>
+
+</div>
+<div class="page" id="page-timeline">
+
+<div class="page-header">
+  <div class="page-category">World</div>
+  <div class="page-title">Timeline</div>
+  <div class="page-desc">What happened, in order.</div>
+</div>
+
+<div class="content-h2">Fantasy Era</div>
+<div class="field-group">
+  <span class="field-label">Opening state</span>
+  <div class="field-value" contenteditable="false">Solar Covenant, Lunar Covenant, and Celestial Church are the three major powers. Smaller factions (the Forge and others) exist alongside them. Historical Solar-Lunar wars have ended. They are cautiously allied. No single institution dominates.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Sol's first assignment</span>
+  <div class="field-value" contenteditable="false">Solstice, approximately 18, assigned as healer to Florence — a war general and prince. This is his first post. Florence has recently lost his leg to a poisoned trap. He is in a bad place. He is horrible to Sol.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The relationship develops</span>
+  <div class="field-value" contenteditable="false">Raphael is the catalyst. Over months, through Raphael's advocacy and Florence's gradual lowering of defences, Sol and Florence become something to each other. Private, careful, real.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Cecil's betrayal</span>
+  <div class="field-value" contenteditable="false">Cecil — Florence's childhood friend turned king — has Florence publicly accused of treason. Florence's hair is cut off before the execution as a ritual humiliation. Florence is killed. The charges were fabricated.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Sol's grief spiral</span>
+  <div class="field-value" contenteditable="false">Sol pursues every avenue to undo what happened. He enters into dealings with Vesper. The knowledge Vesper gives him comes too late to be useful. He continues anyway. He does things he cannot take back.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The Solar Covenant's end</span>
+  <div class="field-value" contenteditable="false">As a result of Sol's actions, Cecil orders the remaining Solar Covenant members killed and their records burned. Some survive scattered. The institution effectively ends.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The sealing</span>
+  <div class="field-value" contenteditable="false">Vesper is sealed — pinned to a stone slab in a church basement by a star shard through his throat and hands. Conscious but completely immobile. Cecil and Lunar practitioners are involved. Sol tries to free Vesper and fails.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What Sol builds</span>
+  <div class="field-value" contenteditable="false">Sol founds what will become the Abyssal Church. He worships himself without meaning to — the mythology that builds around his grief and his power and his remaining life becomes the Reclaimer doctrine. He spends his remaining years imbuing Florence's grave with healing magic. He dies. The magic keeps accumulating.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Cecil's curse</span>
+  <div class="field-value" contenteditable="false">At Sol's request before or during this period, Vesper modified Cecil's string of fate so all his descendants would die before reaching adulthood. This curse lays dormant for 1000 years — Cecil's line navigates it through luck and distance from the church's succession rituals.</div>
+</div>
+
+<div class="content-h2">The Gap — ~1000 Years</div>
+<div class="field-group">
+  <span class="field-label">Institutional consolidation</span>
+  <div class="field-value" contenteditable="false">The institution Sol built expands. It absorbs smaller powers. It establishes legal authority. It becomes hegemonic.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Lunar persecution</span>
+  <div class="field-value" contenteditable="false">The encoding of Lunar practice as heresy calcifies into law. Persecution becomes systematic. The original reason — the sealing — is distorted beyond recognition.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Solar erasure</span>
+  <div class="field-value" contenteditable="false">The Solar Covenant is written out of history. A thousand years of deliberate suppression. By the modern era, very little accurate information about them survives in accessible form.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The healing creek</span>
+  <div class="field-value" contenteditable="false">Sol's magic accumulates in Florence's burial site. The site develops a reputation for unusual healing properties. People travel to it. Nobody knows why it works.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Vesper</span>
+  <div class="field-value" contenteditable="false">Conscious. Immobile. For approximately 1000 years. With Sol's skull and Sol's eye. Looking at darkness.</div>
+</div>
+
+<div class="content-h2">Modern Era</div>
+<div class="field-group">
+  <span class="field-label">Vesper found</span>
+  <div class="field-value" contenteditable="false">Children exploring old ruins find him in a basement — still pinned, still conscious. They free him. He is significantly weaker than he was a thousand years ago. He has been awake for all of it.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Arwin's ritual</span>
+  <div class="field-value" contenteditable="false">Arwin's predecessor Seval performs a ritual that kills Arwin before his eighteenth birthday and resurrects him as something other than fully alive. Arwin wakes up and becomes Bishop. The curse on Cecil's bloodline activates — technically satisfied.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The alliance shift</span>
+  <div class="field-value" contenteditable="false">Vesper and Arwin come to power at roughly the same time. Vesper shifts his alliance from the Lunar Covenant to Arwin's church. The Lunars lose their last major institutional protection.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Florence summoned</span>
+  <div class="field-value" contenteditable="false">Rhys performs a ritual near the healing creek hoping to summon something useful for personal fame. He accidentally summons Florence — a thousand-year-old war general ghost with amnesia, furious, and far more powerful than a normal ghost should be. Florence starts gaining coherence.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The investigation begins</span>
+  <div class="field-value" contenteditable="false">Florence understands he was murdered. He and Rhys begin looking into the lineage of the person responsible. They are looking for Cecil's modern descendants. They do not yet know they are looking at people they already know.</div>
+</div>
+
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; What is coming</span>
+  <div class="field-value" contenteditable="false">Florence will eventually regain enough memory to recognise Cecil. He will recognise Cecil's green eyes. The first person he sees those eyes in will be Arwin. The person standing between them will be Rhys. The person who has been hunting this bloodline and the person the bloodline belongs to and the person who is friends with both will all be in the same space when this comes out.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-timeline')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-timeline"></div>
+
+</div>
+<div class="page" id="page-locations">
+
+<div class="page-header">
+  <div class="page-category">World</div>
+  <div class="page-title">Locations</div>
+  <div class="page-desc">Places that matter, and why.</div>
+</div>
+
+<div class="content-h2">The Healing Creek</div>
+<div class="field-group">
+  <span class="field-label">Public knowledge</span>
+  <div class="field-value" contenteditable="false">A site famous for unusual healing properties. People travel to it from significant distances. Its reputation is old and well-established. The healing is real — serious injuries and illnesses have been treated there with documented results.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Why it works (public assumption)</span>
+  <div class="field-value" contenteditable="false">Nobody knows. Various theories: natural mineral content, a local deity's blessing, some residual magic from an unidentified ancient source. The church has not discouraged the pilgrimage — it is not officially Abyssal-sanctioned but it is not opposed.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What it actually is</span>
+  <div class="field-value" contenteditable="false">Florence's grave.</div>
+</div>
+<div class="spoiler-block">
+  <div class="spoiler-content"><div class="field-group">
+  <span class="field-label">&#128274; The truth</span>
+  <div class="field-value" contenteditable="false">Solstice spent the remainder of his life after Florence's execution imbuing Florence's burial site with solar healing magic. He could not bring Florence back. He kept trying anyway. The magic accumulated for centuries after Sol's death, growing stronger rather than fading. Florence has been resting in Sol's accumulated grief-love for a thousand years. This is why he is as powerful as he is as a ghost. This is why Rhys's ritual worked. Sol did bring him back. He just did not live to know it.</div>
+</div></div>
+  <div class="spoiler-lock"><div class="spoiler-lock-icon">&#9919;</div><div class="spoiler-lock-text">Owner only</div></div>
+</div>
+
+<div class="content-h2">The Church Ruins</div>
+<div class="field-group">
+  <span class="field-label">What it is</span>
+  <div class="field-value" contenteditable="false">An old, abandoned church — ruined by the modern era. Structurally unsafe in places, historically interesting to explorers.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The basement</span>
+  <div class="field-value" contenteditable="false">Contains a sealed stone slab. Or contained — the slab is now empty. Star shard marks remain where the shard went through throat and hands.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">History</span>
+  <div class="field-value" contenteditable="false">This is where Vesper was sealed for approximately 1000 years. This is where children found him, conscious and immobile and looking at them. This is where he returned to the world.</div>
+</div>
+
+<div class="content-h2">The Abyssal Cathedral</div>
+<div class="field-group">
+  <span class="field-label">What it is</span>
+  <div class="field-value" contenteditable="false">The seat of Abyssal Church power in the modern era. Where Arwin operates from. Political and spiritual centre of the world.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Aesthetic</span>
+  <div class="field-value" contenteditable="false">Large, dark, gold-lit. Black stone where possible. Gold embroidery everywhere — on banners, on robes, on the architecture itself. Built to make people feel small and the institution feel eternal.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Function</span>
+  <div class="field-value" contenteditable="false">Government building as much as religious one. The rooms where law is made and governance happens. The Bishop's chambers. The administrative wing where Lucius and others work.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The skull iconography</span>
+  <div class="field-value" contenteditable="false">Throughout the Cathedral, skulls appear as sacred symbols. On pillars, in windows, carved into doorframes. Within Abyssal tradition this is not macabre — skulls are symbols of the Reclaimer's dominion over death, of transformation. Outsiders and non-believers find it unsettling.</div>
+</div>
+
+<div class="content-h2">The Celestial Observatory</div>
+<div class="field-group">
+  <span class="field-label">What it is</span>
+  <div class="field-value" contenteditable="false">Vesper's primary space within the Celestial Church's architecture. Not widely accessible. Where he communes with stars and conducts the more sensitive aspects of the church's work.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Aesthetic</span>
+  <div class="field-value" contenteditable="false">Open to the sky. Stars visible or simulated at all times. The space feels larger than it should. Purple and silver everywhere.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The stone slab</span>
+  <div class="field-value" contenteditable="false">There may be one. Or something like one. To develop.</div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-locations')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-locations"></div>
+
+</div>
+<div class="page" id="page-magic">
+
+<div class="page-header">
+  <div class="page-category">World</div>
+  <div class="page-title">Magic & Abilities</div>
+  <div class="page-desc">What people can do, what it costs, and what it means.</div>
+</div>
+
+<div class="content-h2">Lunar Magic</div>
+<div class="field-group">
+  <span class="field-label">Overview</span>
+  <div class="field-value" contenteditable="false">The Lunar Covenant's tradition of magic centres on the relationship between the living and the dead, and on perception of things that are not fully in the physical world. Practitioners are identifiable by white hair and typically elf-like ears — these traits cannot be concealed.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Communication with the dead</span>
+  <div class="field-value" contenteditable="false">Genuine communion with ghosts and other non-corporeal entities. Not metaphorical. Rhys actually hears and perceives Florence. This is not common. Most people cannot do it at all.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Seership</span>
+  <div class="field-value" contenteditable="false">Perception beyond the ordinary. Sometimes prophetic — flashes of what is coming, or what has been. Sometimes just sensitive — an awareness of wrongness, of presence, of things that should not be there. Variable in reliability and specificity. Cannot be fully controlled.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Exorcism</span>
+  <div class="field-value" contenteditable="false">Removal or containment of hostile entities. Practical work. Dangerous. Exhausting. The thing the Abyssal Church actually pays Rhys to do, dressed up as consultation.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The toll</span>
+  <div class="field-value" contenteditable="false">None of this is free. Using Lunar abilities — especially extended contact with the dead or with hostile entities — degrades the practitioner's psychological state. Extended seership leaves marks. Extended contact with powerful ghosts like Florence is not neutral. Rhys manages this by limiting use and not telling anyone how much he is limiting.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The tradition</span>
+  <div class="field-value" contenteditable="false">Lunar practice has frameworks for managing the toll — community support structures, limits on use, ways of recovering. These frameworks have largely not survived into the modern era. Modern Lunars who practice are largely managing this alone.</div>
+</div>
+
+<div class="content-h2">Solar Magic</div>
+<div class="field-group">
+  <span class="field-label">Overview</span>
+  <div class="field-value" contenteditable="false">The Solar Covenant's tradition of magic is associated with healing, light, and life. Practitioners are identifiable by golden blonde hair. The Covenant no longer exists as an institution, but the magic it represented was real.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Healing</span>
+  <div class="field-value" contenteditable="false">Direct healing of physical injuries and illness. Sol as a healer is genuinely effective — his assignment to Florence is not ceremonial. Solar healing is not miracle-working but it is significantly beyond what ordinary medicine achieves.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Imbuing</span>
+  <div class="field-value" contenteditable="false">Solar healing magic can be placed into locations and objects, persisting long after the practitioner has gone. This is not a short-term effect — it accumulates and strengthens over time rather than fading. The healing creek is the most significant example of this effect.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Life affinity</span>
+  <div class="field-value" contenteditable="false">Solar practitioners have a general affinity with living things — growth, vitality, the continuation of life. This is in contrast to Lunar affinity with the space between life and death.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Light</span>
+  <div class="field-value" contenteditable="false">Actual light manipulation appears to be within Solar capability, though the extent is not detailed.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Sol specifically</span>
+  <div class="field-value" contenteditable="false">Has abilities that are not standard Solar practice — specifically in the direction of death magic. The Reclaimer abilities. Whether this is unique to him or latent in Solar tradition is a thread to develop.</div>
+</div>
+
+<div class="content-h2">Celestial Magic</div>
+<div class="field-group">
+  <span class="field-label">Overview</span>
+  <div class="field-value" contenteditable="false">The Celestial Church's tradition operates on a different scale from Solar or Lunar magic. It is concerned with fate, with the stars as entities, with forces that do not map onto human categories of good or harm.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Star communion</span>
+  <div class="field-value" contenteditable="false">Vesper communicates with stars as living entities. They tell him things. He acts on what he learns. The nature of what stars communicate and how is not publicly documented.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Fate reading</span>
+  <div class="field-value" contenteditable="false">The ability to perceive the strings of fate written in the stars — to see the trajectory of a person's destiny. Not perfectly, not with complete precision, but genuinely. This is what Celestial acolytes learn in lesser forms.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Fate modification</span>
+  <div class="field-value" contenteditable="false">Rare, costly, enormous. Vesper modified Cecil's string of fate at Sol's request — physically altered the celestial notation of his destiny so it would apply to all descendants. This was a significant use of power even at Vesper's full strength. He cannot do this in his current diminished state.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The mark</span>
+  <div class="field-value" contenteditable="false">The mark placed on Celestial acolytes is connected to Celestial magic — it allows monitoring. Possibly other effects not disclosed at marking.</div>
+</div>
+
+<div class="content-h2">Necromancy</div>
+<div class="field-group">
+  <span class="field-label">Status</span>
+  <div class="field-value" contenteditable="false">Officially banned by Abyssal Church doctrine. Publicly considered profane, spiritually dangerous, legally prohibited.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">What it actually is</span>
+  <div class="field-value" contenteditable="false">Real and functional. Resurrection of the dead, communication with the dead, creation and manipulation of undead states. These things work.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The contradiction</span>
+  <div class="field-value" contenteditable="false">The Abyssal Church bans necromancy. The Abyssal Church's Bishop is an undead created by a necromantic ritual. The Abyssal Church's founding figure was a practitioner of death magic. The Reclaimer, their central theological figure, is named after a death-magic concept. The contradiction is total.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Seval's ritual</span>
+  <div class="field-value" contenteditable="false">The specific ritual Seval used to make Arwin Bishop was necromantic. It killed Arwin and resurrected him as something else. This is the most significant violation of Abyssal doctrine possible, performed by a previous Bishop, creating the current Bishop.</div>
+</div>
+
+<div class="content-h2">Ghosts</div>
+<div class="field-group">
+  <span class="field-label">Formation</span>
+  <div class="field-value" contenteditable="false">When a person dies, something of them can persist. Not always. The conditions for ghost formation versus ordinary death are not fully understood.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Form</span>
+  <div class="field-value" contenteditable="false">A ghost manifests as how they remember themselves at the moment of death — including psychological wounds that left marks so deep they shaped the self-image. Florence materialises without his prosthetic leg (which he felt made him lesser) and with his hair cut short (which was done to him in humiliation). He does not remember either of these things, but his soul does.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Power</span>
+  <div class="field-value" contenteditable="false">Most ghosts are weak and diffuse. Power accrues over time, especially in proximity to magical sites. A ghost buried in a site continuously imbued with powerful Solar magic for a thousand years is going to be significantly stronger than average.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Coherence</span>
+  <div class="field-value" contenteditable="false">Ghosts start diffuse — confused, reactive, not quite persons. Coherence is gained over time, through interaction, through proximity to the living, through the slow return of memory and self. Florence started as barely a coherent force of nature and is becoming, gradually, a person again.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">Summoning</span>
+  <div class="field-value" contenteditable="false">Can be performed through ritual. Technically necromancy. Technically banned. Rhys does it anyway. His summoning of Florence was accidental — he was performing a general ritual for personal gain near a site that turned out to be Florence's grave.</div>
+</div>
+<div class="field-group">
+  <span class="field-label">The magical site interaction</span>
+  <div class="field-value" contenteditable="false">Ghost power and the properties of magical sites can interact. A ghost buried in a Solar-imbued site absorbs something from that imbuing. Florence being more powerful than he should be is related to Sol's thousand years of accumulated magic.</div>
+</div>
+
+<button class="add-card-btn" onclick="addCard('cards-magic')">&#10022; Add Entry</button>
+<div class="cards-grid" id="cards-magic"></div>
+
+</div>
+
+  </div>
+</div>
+
+<script>
+const PASSWORD = "solstice";
+let isOwner = false, isEditMode = false;
+const authBtn = document.getElementById('auth-btn');
+const authStatus = document.getElementById('auth-status');
+const pwModal = document.getElementById('pw-modal');
+const pwInput = document.getElementById('pw-input');
+const pwError = document.getElementById('pw-error');
+
+// ── ERA TOGGLES ──
+document.querySelectorAll('.nav-era').forEach(era => {
+  era.addEventListener('click', () => {
+    const id = 'era-' + era.dataset.era;
+    const grp = document.getElementById(id);
+    era.classList.toggle('open');
+    grp.classList.toggle('open');
+  });
+});
+
+// ── CATEGORY TOGGLES ──
+document.querySelectorAll('.nav-cat').forEach(cat => {
+  cat.addEventListener('click', () => {
+    const id = 'cat-' + cat.dataset.cat;
+    const sub = document.getElementById(id);
+    cat.classList.toggle('open');
+    sub.classList.toggle('open');
+  });
+});
+
+// ── PAGE NAV ──
+document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    const page = document.getElementById('page-' + item.dataset.page);
+    if (page) { page.classList.add('active'); document.getElementById('main').scrollTo(0,0); }
+  });
+});
+
+// ── AUTH ──
+authBtn.addEventListener('click', () => {
+  if (isOwner) { isEditMode ? disableEditMode() : enableEditMode(); }
+  else { pwModal.classList.add('open'); pwInput.value=''; pwError.textContent=''; setTimeout(()=>pwInput.focus(),100); }
+});
+document.getElementById('pw-submit').addEventListener('click', checkPassword);
+document.getElementById('pw-cancel').addEventListener('click', () => pwModal.classList.remove('open'));
+pwInput.addEventListener('keydown', e => { if(e.key==='Enter') checkPassword(); });
+
+function checkPassword() {
+  if (pwInput.value === PASSWORD) { pwModal.classList.remove('open'); becomeOwner(); }
+  else { pwError.textContent='Incorrect key.'; pwInput.value=''; pwInput.focus(); }
+}
+function becomeOwner() {
+  isOwner=true; document.body.classList.add('owner'); authBtn.classList.add('owner');
+  authStatus.textContent='✓ Owner — all lore visible'; enableEditMode();
+}
+function enableEditMode() {
+  isEditMode=true; document.body.classList.add('edit-mode');
+  document.querySelectorAll('[contenteditable]').forEach(el=>el.setAttribute('contenteditable','true'));
+  authBtn.textContent='✎ Editing — click to lock';
+  authStatus.textContent='Auto-saving changes';
+}
+function disableEditMode() {
+  isEditMode=false; document.body.classList.remove('edit-mode');
+  document.querySelectorAll('[contenteditable]').forEach(el=>el.setAttribute('contenteditable','false'));
+  saveToStorage(); authBtn.textContent='✎ Toggle Editing';
+  authStatus.textContent='✓ Owner — viewing';
+}
+
+// ── CARDS ──
+function addCard(gridId) {
+  const grid=document.getElementById(gridId); if(!grid) return;
+  const card=document.createElement('div'); card.className='card';
+  card.innerHTML='<button class="delete-card-btn" onclick="deleteCard(this)">✕</button><div class="card-name" contenteditable="true">New Entry</div><div class="card-role" contenteditable="true">role / tags</div><div class="field-group"><span class="field-label">Notes</span><div class="field-value" contenteditable="true">Write here...</div></div>';
+  grid.appendChild(card); card.scrollIntoView({behavior:'smooth',block:'center'}); saveToStorage();
+}
+function deleteCard(btn) { if(confirm('Remove this entry?')){ btn.closest('.card').remove(); saveToStorage(); } }
+
+// ── SAVE / LOAD ──
+let saveTimer;
+document.getElementById('content-area').addEventListener('input', () => {
+  clearTimeout(saveTimer);
+  if(isOwner) authStatus.textContent='...saving';
+  saveTimer=setTimeout(()=>{ saveToStorage(); if(isOwner) authStatus.textContent=isEditMode?'Saved ✓':'✓ Owner — viewing'; },900);
+});
+function saveToStorage() {
+  try {
+    const data={};
+    document.querySelectorAll('.cards-grid').forEach(g=>{ data[g.id]=g.innerHTML; });
+    document.querySelectorAll('.page').forEach(p=>{
+      p.querySelectorAll('[contenteditable]').forEach(el=>{ data['ce_'+p.id+'_'+el.className.split(' ')[0]+'_'+el.closest('.field-group,.card-name,.card-role')?.querySelector('.field-label')?.textContent]=el.innerHTML; });
+    });
+    localStorage.setItem('oc-archive-v3',JSON.stringify(data));
+  } catch(e){}
+}
+function loadFromStorage() {
+  try {
+    const raw=localStorage.getItem('oc-archive-v3'); if(!raw) return;
+    const data=JSON.parse(raw);
+    Object.entries(data).forEach(([id,html])=>{ const el=document.getElementById(id); if(el) el.innerHTML=html; });
+    document.querySelectorAll('.delete-card-btn').forEach(btn=>{ btn.onclick=function(){deleteCard(this);}; });
+  } catch(e){}
+}
+loadFromStorage();
+</script>
+</body>
+</html>
